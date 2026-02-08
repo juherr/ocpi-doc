@@ -291,9 +291,8 @@ function deprecatedNotice(version) {
   return `\n[IMPORTANT]\n====\nThis version is deprecated. Use OCPI ${replacementVersion} instead.\n====\n`
 }
 
-function aboutBlock() {
-  return `
-== About
+function aboutPageContent() {
+  return `= About
 
 This site is maintained by Julien Herr.
 
@@ -303,9 +302,12 @@ This site is maintained by Julien Herr.
 `
 }
 
+function writeAboutPage(pagesDir) {
+  writeFile(path.join(pagesDir, 'about.adoc'), `${aboutPageContent()}\n`)
+}
+
 function writeVersionHomePage(pagesDir, version) {
   const notice = deprecatedNotice(version)
-  const about = aboutBlock()
   writeFile(
     path.join(pagesDir, 'index.adoc'),
     `= OCPI ${version}
@@ -314,14 +316,12 @@ This documentation page is generated from the OCPI \`${version}\` release branch
 
 See xref:spec/introduction.adoc[Introduction] to start reading the specification.
 API Reference for this version: link:/api/${version}/[API Reference (OCPI ${version})].
-${about}
 `
   )
 }
 
 function writeFallbackHomePage(pagesDir, version) {
   const notice = deprecatedNotice(version)
-  const about = aboutBlock()
   writeFile(
     path.join(pagesDir, 'index.adoc'),
     `= OCPI ${version}
@@ -329,7 +329,6 @@ function writeFallbackHomePage(pagesDir, version) {
 This version is imported from upstream, but its source files are not in AsciiDoc format.${notice}
 
 For now, this version is available as source-only under \`specifications/ocpi-${version}\`.
-${about}
 `
   )
 }
@@ -344,6 +343,7 @@ function generateComponentPages(componentDir, version, asciidocFiles) {
   ensureDir(partialsSourceDir)
 
   writeVersionHomePage(pagesDir, version)
+  writeAboutPage(pagesDir)
 
   const navLines = ['* xref:index.adoc[Home]', '* Spec']
 
@@ -367,6 +367,8 @@ include::partial$src/${partialName}[]
     navLines.push(`** xref:spec/${wrapperName}[${title}]`)
   }
 
+  navLines.push('* xref:about.adoc[About]')
+
   writeFile(path.join(moduleRoot, 'nav.adoc'), `${navLines.join('\n')}\n`)
 }
 
@@ -377,8 +379,9 @@ function generateFallbackComponent(componentDir, version) {
   ensureDir(pagesDir)
 
   writeFallbackHomePage(pagesDir, version)
+  writeAboutPage(pagesDir)
 
-  writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n')
+  writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n* xref:about.adoc[About]\n')
 }
 
 function syncVersion(versionInfo) {

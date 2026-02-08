@@ -1,0 +1,1230 @@
+# OCPI 2.3.0 - Locations Module
+# Sender (CPO) and Receiver (eMSP) interfaces for Location, EVSE, Connector, and Parking
+openapi: 3.1.0
+info:
+  title: OCPI 2.3.0 - Locations
+  description: >-
+    The Locations module provides information about charging locations, EVSEs, connectors,
+    and parking spaces. Data owner is typically the CPO.
+  version: 2.3.0
+  license:
+    name: Creative Commons Attribution-NoDerivatives 4.0 International
+    url: https://creativecommons.org/licenses/by-nd/4.0/
+
+externalDocs:
+  description: OCPI 2.3.0 Specification
+  url: https://github.com/ocpi/ocpi
+
+servers:
+  - url: https://example.com/ocpi/2.3.0
+    description: Example OCPI server
+
+security:
+  - TokenAuth: []
+
+paths:
+  # ---- Sender Interface (CPO) ----
+
+  /locations:
+    get:
+      operationId: getLocations
+      summary: Get Locations List (Sender)
+      description: >-
+        Fetch Location objects from the CPO, last updated between date_from and date_to (paginated).
+      tags:
+        - Locations - Sender
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/date_from'
+        - $ref: './shared/parameters.yaml#/components/parameters/date_to'
+        - $ref: './shared/parameters.yaml#/components/parameters/offset'
+        - $ref: './shared/parameters.yaml#/components/parameters/limit'
+      responses:
+        '200':
+          description: List of Location objects.
+          headers:
+            X-Total-Count:
+              $ref: './shared/headers.yaml#/components/headers/X-Total-Count'
+            X-Limit:
+              $ref: './shared/headers.yaml#/components/headers/X-Limit'
+            Link:
+              $ref: './shared/headers.yaml#/components/headers/Link'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Location'
+        '401':
+          description: Unauthorized.
+
+  /locations/{location_id}:
+    get:
+      operationId: getLocation
+      summary: Get Location Object (Sender)
+      description: Retrieve a specific Location object by its ID.
+      tags:
+        - Locations - Sender
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      responses:
+        '200':
+          description: The requested Location object.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Location'
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Location not found.
+
+  /locations/{location_id}/{evse_uid}:
+    get:
+      operationId: getEvse
+      summary: Get EVSE Object (Sender)
+      description: Retrieve a specific EVSE object from a Location.
+      tags:
+        - Locations - Sender
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+        - name: evse_uid
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      responses:
+        '200':
+          description: The requested EVSE object.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EVSE'
+        '401':
+          description: Unauthorized.
+        '404':
+          description: EVSE not found.
+
+  /locations/{location_id}/{evse_uid}/{connector_id}:
+    get:
+      operationId: getConnector
+      summary: Get Connector Object (Sender)
+      description: Retrieve a specific Connector object from an EVSE.
+      tags:
+        - Locations - Sender
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+        - name: evse_uid
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+        - name: connector_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      responses:
+        '200':
+          description: The requested Connector object.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Connector'
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Connector not found.
+
+  # ---- Receiver Interface (eMSP) ----
+
+  /locations/{country_code}/{party_id}/{location_id}:
+    get:
+      operationId: getReceiverLocation
+      summary: Get Location (Receiver)
+      description: Retrieve a Location object as stored in the Receiver's system.
+      tags:
+        - Locations - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      responses:
+        '200':
+          description: The requested Location object.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Location'
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Location not found.
+    put:
+      operationId: putReceiverLocation
+      summary: Push Location (Receiver)
+      description: Push a new or updated Location object to the Receiver.
+      tags:
+        - Locations - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Location'
+      responses:
+        '200':
+          description: Location updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '201':
+          description: Location created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '401':
+          description: Unauthorized.
+    patch:
+      operationId: patchReceiverLocation
+      summary: Partially Update Location (Receiver)
+      description: >-
+        Push partial updates to a Location object. The request MUST contain the last_updated field.
+      tags:
+        - Locations - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Partial Location object. MUST contain last_updated.
+              additionalProperties: true
+      responses:
+        '200':
+          description: Location partially updated.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '401':
+          description: Unauthorized.
+
+  /locations/{country_code}/{party_id}/{location_id}/{evse_uid}:
+    get:
+      operationId: getReceiverEvse
+      summary: Get EVSE (Receiver)
+      description: Retrieve an EVSE object as stored in the Receiver's system.
+      tags:
+        - Locations - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+        - name: evse_uid
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      responses:
+        '200':
+          description: The requested EVSE object.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EVSE'
+        '401':
+          description: Unauthorized.
+        '404':
+          description: EVSE not found.
+    put:
+      operationId: putReceiverEvse
+      summary: Push EVSE (Receiver)
+      description: >-
+        Push a new or updated EVSE to the Receiver.
+        The Receiver SHALL update the last_updated field on the parent Location.
+      tags:
+        - Locations - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+        - name: evse_uid
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EVSE'
+      responses:
+        '200':
+          description: EVSE updated.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '201':
+          description: EVSE created.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '401':
+          description: Unauthorized.
+    patch:
+      operationId: patchReceiverEvse
+      summary: Partially Update EVSE (Receiver)
+      description: >-
+        Push partial updates to an EVSE. The request MUST contain the last_updated field.
+        The Receiver SHALL update last_updated on the parent Location.
+      tags:
+        - Locations - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+        - name: evse_uid
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Partial EVSE object. MUST contain last_updated.
+              additionalProperties: true
+      responses:
+        '200':
+          description: EVSE partially updated.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '401':
+          description: Unauthorized.
+
+  /locations/{country_code}/{party_id}/{location_id}/{evse_uid}/{connector_id}:
+    get:
+      operationId: getReceiverConnector
+      summary: Get Connector (Receiver)
+      description: Retrieve a Connector object as stored in the Receiver's system.
+      tags:
+        - Locations - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+        - name: evse_uid
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+        - name: connector_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      responses:
+        '200':
+          description: The requested Connector object.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Connector'
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Connector not found.
+    put:
+      operationId: putReceiverConnector
+      summary: Push Connector (Receiver)
+      description: >-
+        Push a new or updated Connector to the Receiver.
+        The Receiver SHALL update last_updated on the parent EVSE and Location.
+      tags:
+        - Locations - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+        - name: evse_uid
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+        - name: connector_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Connector'
+      responses:
+        '200':
+          description: Connector updated.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '201':
+          description: Connector created.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '401':
+          description: Unauthorized.
+    patch:
+      operationId: patchReceiverConnector
+      summary: Partially Update Connector (Receiver)
+      description: >-
+        Push partial updates to a Connector. The request MUST contain the last_updated field.
+        The Receiver SHALL update last_updated on the parent EVSE and Location.
+      tags:
+        - Locations - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+        - name: evse_uid
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+        - name: connector_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Partial Connector object. MUST contain last_updated.
+              additionalProperties: true
+      responses:
+        '200':
+          description: Connector partially updated.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '401':
+          description: Unauthorized.
+
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: OCPI credentials token passed in the Authorization header.
+  schemas:
+    # ---- Main Objects ----
+
+    Location:
+      type: object
+      description: >-
+        The Location object describes the location and its properties where a group
+        of EVSEs that belong together are installed.
+      required:
+        - country_code
+        - party_id
+        - id
+        - publish
+        - address
+        - city
+        - country
+        - coordinates
+        - time_zone
+        - last_updated
+      properties:
+        country_code:
+          type: string
+          maxLength: 2
+          description: ISO-3166 alpha-2 country code of the CPO that owns this Location.
+        party_id:
+          type: string
+          maxLength: 3
+          description: ID of the CPO that owns this Location.
+        id:
+          type: string
+          maxLength: 36
+          description: Uniquely identifies the location within the CPO's platform.
+        publish:
+          type: boolean
+          description: Whether this Location may be published on a website or app.
+        publish_allowed_to:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublishTokenType'
+          description: >-
+            Only used when publish is false. Tokens listed are allowed to be shown this Location.
+        name:
+          type: string
+          maxLength: 255
+          description: Display name of the location.
+        address:
+          type: string
+          maxLength: 45
+          description: Street/block name and house number if available.
+        city:
+          type: string
+          maxLength: 45
+          description: City or town.
+        postal_code:
+          type: string
+          maxLength: 10
+          description: Postal code of the location.
+        state:
+          type: string
+          maxLength: 20
+          description: State or province of the location.
+        country:
+          type: string
+          maxLength: 3
+          description: ISO 3166-1 alpha-3 code for the country.
+        coordinates:
+          $ref: './shared/common.yaml#/components/schemas/GeoLocation'
+        related_locations:
+          type: array
+          items:
+            $ref: './shared/common.yaml#/components/schemas/AdditionalGeoLocation'
+          description: Geographical locations of related points relevant to the user.
+        parking_type:
+          $ref: '#/components/schemas/ParkingType'
+        evses:
+          type: array
+          items:
+            $ref: '#/components/schemas/EVSE'
+          description: List of EVSEs that belong to this Location.
+        parking_places:
+          type: array
+          items:
+            $ref: '#/components/schemas/Parking'
+          description: List of parking spaces at this Location.
+        directions:
+          type: array
+          items:
+            $ref: './shared/common.yaml#/components/schemas/DisplayText'
+          description: Human-readable directions on how to reach the location.
+        operator:
+          $ref: './shared/common.yaml#/components/schemas/BusinessDetails'
+        suboperator:
+          $ref: './shared/common.yaml#/components/schemas/BusinessDetails'
+        owner:
+          $ref: './shared/common.yaml#/components/schemas/BusinessDetails'
+        facilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Facility'
+          description: Optional list of facilities this charging location directly belongs to.
+        time_zone:
+          type: string
+          maxLength: 255
+          description: IANA TZ-value representing the time zone of the location.
+        opening_times:
+          $ref: './shared/common.yaml#/components/schemas/Hours'
+        charging_when_closed:
+          type: boolean
+          description: >-
+            Indicates if the EVSEs are still charging outside the opening hours.
+            Default is true.
+        images:
+          type: array
+          items:
+            $ref: './shared/common.yaml#/components/schemas/Image'
+          description: Links to images related to the location.
+        energy_mix:
+          $ref: './shared/common.yaml#/components/schemas/EnergyMix'
+        help_phone:
+          type: string
+          maxLength: 25
+          description: Customer service phone number.
+        last_updated:
+          $ref: './shared/common.yaml#/components/schemas/DateTime'
+      additionalProperties: true
+
+    EVSE:
+      type: object
+      description: >-
+        The EVSE object describes the part of a Charging Station that controls
+        one or more Connectors. For each EVSE, a set of Connectors is given.
+      required:
+        - uid
+        - status
+        - connectors
+        - last_updated
+      properties:
+        uid:
+          type: string
+          maxLength: 36
+          description: Uniquely identifies the EVSE within the CPO's platform (not the eMI3 EVSE ID).
+        evse_id:
+          type: string
+          maxLength: 48
+          description: Compliant with the eMI3 standard EVSE ID.
+        status:
+          $ref: '#/components/schemas/Status'
+        status_schedule:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatusSchedule'
+          description: Indicates a planned status update of the EVSE.
+        capabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Capability'
+          description: List of functionalities that the EVSE is capable of.
+        connectors:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Connector'
+          description: List of available connectors on the EVSE.
+        floor_level:
+          type: string
+          maxLength: 4
+          description: Level on which the Charge Point is located (in garage buildings).
+        coordinates:
+          $ref: './shared/common.yaml#/components/schemas/GeoLocation'
+        physical_reference:
+          type: string
+          maxLength: 16
+          description: A number/string printed on the outside of the EVSE for visual identification.
+        directions:
+          type: array
+          items:
+            $ref: './shared/common.yaml#/components/schemas/DisplayText'
+          description: Multi-language human-readable directions to find the EVSE.
+        parking_restrictions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParkingRestriction'
+          description: Restrictions that apply to the parking spot.
+        parking:
+          type: array
+          items:
+            $ref: '#/components/schemas/EVSEParking'
+          description: References to parking spaces assigned to this EVSE.
+        images:
+          type: array
+          items:
+            $ref: './shared/common.yaml#/components/schemas/Image'
+          description: Links to images related to the EVSE.
+        accepted_service_providers:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          description: Names of eMSPs that accept payment at this EVSE.
+        last_updated:
+          $ref: './shared/common.yaml#/components/schemas/DateTime'
+      additionalProperties: true
+
+    Connector:
+      type: object
+      description: A connector is the socket or cable and plug available for the EV to use.
+      required:
+        - id
+        - standard
+        - format
+        - power_type
+        - max_voltage
+        - max_amperage
+        - last_updated
+      properties:
+        id:
+          type: string
+          maxLength: 36
+          description: Identifier of the Connector within the EVSE.
+        standard:
+          $ref: '#/components/schemas/ConnectorType'
+        format:
+          $ref: '#/components/schemas/ConnectorFormat'
+        power_type:
+          $ref: '#/components/schemas/PowerType'
+        max_voltage:
+          type: integer
+          description: Maximum voltage of the connector (line to neutral) in Volts [V].
+        max_amperage:
+          type: integer
+          description: Maximum amperage of the connector in Amperes [A].
+        max_electric_power:
+          type: integer
+          description: Maximum electric power that can be delivered by this connector in Watts [W].
+        tariff_ids:
+          type: array
+          items:
+            type: string
+            maxLength: 36
+          description: Identifiers of the currently valid charging tariffs.
+        terms_and_conditions:
+          type: string
+          format: uri
+          maxLength: 255
+          description: URL to the operator's terms and conditions.
+        capabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectorCapability'
+          description: List of functionalities that the connector is capable of.
+        last_updated:
+          $ref: './shared/common.yaml#/components/schemas/DateTime'
+      additionalProperties: true
+
+    Parking:
+      type: object
+      description: Describes a parking space at a Location (new in OCPI 2.3.0, for EU AFIR compliance).
+      required:
+        - id
+        - vehicle_types
+        - restricted_to_type
+        - reservation_required
+      properties:
+        id:
+          type: string
+          maxLength: 36
+          description: Unique identifier of the parking space within the Location.
+        physical_reference:
+          type: string
+          maxLength: 12
+          description: Physically visible identifier of the parking space.
+        vehicle_types:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/VehicleType'
+          description: Vehicle types that this parking space can accommodate.
+        max_vehicle_weight:
+          type: number
+          description: Maximum vehicle weight in kg.
+        max_vehicle_height:
+          type: number
+          description: Maximum vehicle height in cm.
+        max_vehicle_length:
+          type: number
+          description: Maximum vehicle length in cm.
+        max_vehicle_width:
+          type: number
+          description: Maximum vehicle width in cm.
+        parking_space_length:
+          type: number
+          description: Length of the parking space in cm.
+        parking_space_width:
+          type: number
+          description: Width of the parking space in cm.
+        dangerous_goods_allowed:
+          type: boolean
+          description: Whether vehicles carrying hazardous materials are allowed.
+        direction:
+          $ref: '#/components/schemas/ParkingDirection'
+        drive_through:
+          type: boolean
+          description: Whether the vehicle can drive through without reversing.
+        restricted_to_type:
+          type: boolean
+          description: Whether vehicles not in vehicle_types are forbidden.
+        reservation_required:
+          type: boolean
+          description: Whether a reservation is required to use this parking space.
+        time_limit:
+          type: number
+          description: Maximum parking time in minutes.
+        roofed:
+          type: boolean
+          description: Whether the parking space is under a roof.
+        images:
+          type: array
+          items:
+            $ref: './shared/common.yaml#/components/schemas/Image'
+          description: Photos of the parking space.
+        lighting:
+          type: boolean
+          description: Whether artificial lighting is available.
+        refrigeration_outlet:
+          type: boolean
+          description: Whether a power outlet for truck refrigeration is available.
+        standards:
+          type: array
+          items:
+            type: string
+            maxLength: 36
+          description: Parking space standards (e.g. PAS 1899).
+        apds_reference:
+          type: string
+          description: APDS element reference.
+      additionalProperties: true
+
+    # ---- Supporting Classes ----
+
+    PublishTokenType:
+      type: object
+      description: Defines the set of token properties used to identify tokens allowed to view a Location.
+      properties:
+        uid:
+          type: string
+          maxLength: 36
+          description: Unique token identifier.
+        type:
+          $ref: './tokens.yaml#/components/schemas/TokenType'
+        visual_number:
+          type: string
+          maxLength: 64
+          description: Visual number printed on the token.
+        issuer:
+          type: string
+          maxLength: 64
+          description: Issuing company name.
+        group_id:
+          type: string
+          maxLength: 36
+          description: Token group identifier.
+      additionalProperties: true
+
+    StatusSchedule:
+      type: object
+      description: A planned status update for an EVSE.
+      required:
+        - period_begin
+        - status
+      properties:
+        period_begin:
+          $ref: './shared/common.yaml#/components/schemas/DateTime'
+        period_end:
+          $ref: './shared/common.yaml#/components/schemas/DateTime'
+        status:
+          $ref: '#/components/schemas/Status'
+      additionalProperties: true
+
+    EVSEParking:
+      type: object
+      description: References a Parking space from an EVSE.
+      required:
+        - parking_id
+      properties:
+        parking_id:
+          type: string
+          maxLength: 36
+          description: Reference to a Parking object's id.
+        evse_position:
+          $ref: '#/components/schemas/EVSEPosition'
+      additionalProperties: true
+
+    # ---- Enums ----
+
+    Status:
+      type: string
+      enum:
+        - AVAILABLE
+        - BLOCKED
+        - CHARGING
+        - INOPERATIVE
+        - OUTOFORDER
+        - PLANNED
+        - REMOVED
+        - RESERVED
+        - UNKNOWN
+      description: The status of an EVSE.
+
+    Capability:
+      anyOf:
+        - type: string
+          enum:
+            - CHARGING_PROFILE_CAPABLE
+            - CHARGING_PREFERENCES_CAPABLE
+            - CHIP_CARD_SUPPORT
+            - CONTACTLESS_CARD_SUPPORT
+            - CREDIT_CARD_PAYABLE
+            - DEBIT_CARD_PAYABLE
+            - PED_TERMINAL
+            - REMOTE_START_STOP_CAPABLE
+            - RESERVABLE
+            - RFID_READER
+            - START_SESSION_CONNECTOR_REQUIRED
+            - TOKEN_GROUP_CAPABLE
+            - UNLOCK_CAPABLE
+        - type: string
+      description: The capabilities of an EVSE.
+
+    ConnectorCapability:
+      anyOf:
+        - type: string
+          enum:
+            - ISO_15118_2_PLUG_AND_CHARGE
+            - ISO_15118_20_PLUG_AND_CHARGE
+        - type: string
+      description: The capabilities of a Connector.
+
+    ConnectorFormat:
+      type: string
+      enum:
+        - SOCKET
+        - CABLE
+      description: The format of a connector (socket or attached cable).
+
+    ConnectorType:
+      anyOf:
+        - type: string
+          enum:
+            - CHADEMO
+            - CHAOJI
+            - DOMESTIC_A
+            - DOMESTIC_B
+            - DOMESTIC_C
+            - DOMESTIC_D
+            - DOMESTIC_E
+            - DOMESTIC_F
+            - DOMESTIC_G
+            - DOMESTIC_H
+            - DOMESTIC_I
+            - DOMESTIC_J
+            - DOMESTIC_K
+            - DOMESTIC_L
+            - DOMESTIC_M
+            - DOMESTIC_N
+            - DOMESTIC_O
+            - GBT_AC
+            - GBT_DC
+            - IEC_60309_2_single_16
+            - IEC_60309_2_three_16
+            - IEC_60309_2_three_32
+            - IEC_60309_2_three_64
+            - IEC_62196_T1
+            - IEC_62196_T1_COMBO
+            - IEC_62196_T2
+            - IEC_62196_T2_COMBO
+            - IEC_62196_T3A
+            - IEC_62196_T3C
+            - MCS
+            - NEMA_5_20
+            - NEMA_6_30
+            - NEMA_6_50
+            - NEMA_10_30
+            - NEMA_10_50
+            - NEMA_14_30
+            - NEMA_14_50
+            - PANTOGRAPH_BOTTOM_UP
+            - PANTOGRAPH_TOP_DOWN
+            - SAE_J3400
+            - TESLA_R
+            - TESLA_S
+        - type: string
+      description: The socket or plug standard of the connector.
+
+    PowerType:
+      type: string
+      enum:
+        - AC_1_PHASE
+        - AC_2_PHASE
+        - AC_2_PHASE_SPLIT
+        - AC_3_PHASE
+        - DC
+      description: AC or DC power type.
+
+    ParkingType:
+      anyOf:
+        - type: string
+          enum:
+            - ALONG_MOTORWAY
+            - PARKING_GARAGE
+            - PARKING_LOT
+            - ON_DRIVEWAY
+            - ON_STREET
+            - UNDERGROUND_GARAGE
+        - type: string
+      description: The general type of parking at this location.
+
+    ParkingRestriction:
+      anyOf:
+        - type: string
+          enum:
+            - CUSTOMERS
+            - DISABLED
+            - EMPLOYEES
+            - EV_ONLY
+            - MOTORCYCLES
+            - PLUGGED
+            - TAXIS
+            - TENANTS
+        - type: string
+      description: Restrictions for using a parking spot.
+
+    ParkingDirection:
+      type: string
+      enum:
+        - PARALLEL
+        - PERPENDICULAR
+        - ANGLE
+      description: Direction of the parking space relative to the EVSE.
+
+    EVSEPosition:
+      type: string
+      enum:
+        - LEFT
+        - RIGHT
+        - CENTER
+      description: Position of the EVSE relative to the parking space.
+
+    Facility:
+      anyOf:
+        - type: string
+          enum:
+            - HOTEL
+            - RESTAURANT
+            - CAFE
+            - MALL
+            - SUPERMARKET
+            - SPORT
+            - RECREATION_AREA
+            - NATURE
+            - MUSEUM
+            - BIKE_SHARING
+            - BUS_STOP
+            - TAXI_STAND
+            - TRAM_STOP
+            - METRO_STATION
+            - TRAIN_STATION
+            - AIRPORT
+            - PARKING_LOT
+            - CARPOOL_PARKING
+            - FUEL_STATION
+            - WIFI
+        - type: string
+      description: Facilities at or near the charging location.
+
+    VehicleType:
+      anyOf:
+        - type: string
+          enum:
+            - MOTORCYCLE
+            - PERSONAL_VEHICLE
+            - PERSONAL_VEHICLE_WITH_TRAILER
+            - VAN
+            - SEMI_TRACTOR
+            - RIGID
+            - TRUCK_WITH_TRAILER
+            - BUS
+            - DISABLED
+        - type: string
+      description: Types of vehicles that can use a parking space.

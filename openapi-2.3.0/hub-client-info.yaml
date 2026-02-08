@@ -1,0 +1,175 @@
+# OCPI 2.3.0 - Hub Client Info Module
+# Sender (Hub) and Receiver (Party) interfaces for client connection information
+openapi: 3.1.0
+info:
+  title: OCPI 2.3.0 - Hub Client Info
+  description: >-
+    The Hub Client Info module provides information about parties connected to a Hub.
+    Data owner is the Hub.
+  version: 2.3.0
+  license:
+    name: Creative Commons Attribution-NoDerivatives 4.0 International
+    url: https://creativecommons.org/licenses/by-nd/4.0/
+
+externalDocs:
+  description: OCPI 2.3.0 Specification
+  url: https://github.com/ocpi/ocpi
+
+servers:
+  - url: https://example.com/ocpi/2.3.0
+    description: Example OCPI server
+
+security:
+  - TokenAuth: []
+
+paths:
+  # ---- Sender Interface (Hub) ----
+
+  /hubclientinfo:
+    get:
+      operationId: getHubClientInfo
+      summary: Get Client Info List (Sender)
+      description: >-
+        Fetch ClientInfo objects from the Hub, last updated between date_from and date_to (paginated).
+      tags:
+        - HubClientInfo - Sender
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/parameters.yaml#/components/parameters/date_from'
+        - $ref: './shared/parameters.yaml#/components/parameters/date_to'
+        - $ref: './shared/parameters.yaml#/components/parameters/offset'
+        - $ref: './shared/parameters.yaml#/components/parameters/limit'
+      responses:
+        '200':
+          description: List of ClientInfo objects.
+          headers:
+            X-Total-Count:
+              $ref: './shared/headers.yaml#/components/headers/X-Total-Count'
+            X-Limit:
+              $ref: './shared/headers.yaml#/components/headers/X-Limit'
+            Link:
+              $ref: './shared/headers.yaml#/components/headers/Link'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ClientInfo'
+        '401':
+          description: Unauthorized.
+
+  # ---- Receiver Interface (Party) ----
+
+  /hubclientinfo/{country_code}/{party_id}:
+    get:
+      operationId: getReceiverClientInfo
+      summary: Get Client Info (Receiver)
+      description: Retrieve a ClientInfo object as stored in the Receiver's system.
+      tags:
+        - HubClientInfo - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+      responses:
+        '200':
+          description: The requested ClientInfo object.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ClientInfo'
+        '401':
+          description: Unauthorized.
+        '404':
+          description: ClientInfo not found.
+
+    put:
+      operationId: putReceiverClientInfo
+      summary: Push Client Info (Receiver)
+      description: Push a new or updated ClientInfo object to the Receiver.
+      tags:
+        - HubClientInfo - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientInfo'
+      responses:
+        '200':
+          description: ClientInfo updated.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '201':
+          description: ClientInfo created.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '401':
+          description: Unauthorized.
+
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: OCPI credentials token passed in the Authorization header.
+  schemas:
+    ClientInfo:
+      type: object
+      description: Information about a party connected to a Hub.
+      required:
+        - party_id
+        - country_code
+        - role
+        - status
+        - last_updated
+      properties:
+        party_id:
+          type: string
+          maxLength: 3
+          description: CPO or eMSP ID of this party.
+        country_code:
+          type: string
+          maxLength: 2
+          description: Country code of the country this party is operating in.
+        role:
+          $ref: './shared/common.yaml#/components/schemas/Role'
+        status:
+          $ref: '#/components/schemas/ConnectionStatus'
+        last_updated:
+          $ref: './shared/common.yaml#/components/schemas/DateTime'
+      additionalProperties: true
+
+    ConnectionStatus:
+      type: string
+      enum:
+        - CONNECTED
+        - OFFLINE
+        - PLANNED
+        - SUSPENDED
+      description: Status of a party's connection to the Hub.

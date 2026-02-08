@@ -1,0 +1,126 @@
+# OCPI 2.3.0 - Shared Headers
+# Common HTTP headers for OCPI requests and responses
+openapi: 3.1.0
+info:
+  title: OCPI 2.3.0 - Shared Headers
+  version: 2.3.0
+
+paths: {}
+
+components:
+  headers:
+    # ---- Response Headers ----
+
+    X-Total-Count:
+      description: >-
+        The total number of objects available in the server system that match the given query
+        (including query parameters such as date_from and date_to but excluding limit and offset).
+      schema:
+        type: integer
+      required: false
+
+    X-Limit:
+      description: >-
+        The maximum number of objects that the server can return.
+        This is an upper limit; fewer objects may be returned if not enough remain.
+      schema:
+        type: integer
+      required: false
+
+    Link:
+      description: >-
+        Link to the 'next' page. Provided when this is NOT the last page.
+        Contains any filters present in the original request.
+        Format: <URL>; rel="next"
+      schema:
+        type: string
+      required: false
+
+  parameters:
+    # ---- Request Headers ----
+
+    Authorization:
+      name: Authorization
+      in: header
+      required: true
+      description: >-
+        OCPI credentials token for authentication.
+        Format: Token <base64-encoded-credentials-token>
+      schema:
+        type: string
+        pattern: "^Token [A-Za-z0-9+/=]+$"
+      example: "Token ZWJmM2IzOTktNzc5Zi00NDk3LTliOWQtYWM2YWQzY2M0NGQyCg=="
+
+    X-Request-ID:
+      name: X-Request-ID
+      in: header
+      required: true
+      description: >-
+        Every request SHALL contain a unique request ID.
+        The response to this request SHALL contain the same ID.
+      schema:
+        type: string
+        format: uuid
+      example: "f5be3127-a31e-4e8c-84c3-0e4c89a48d71"
+
+    X-Correlation-ID:
+      name: X-Correlation-ID
+      in: header
+      required: true
+      description: >-
+        Every request/response SHALL contain a unique correlation ID.
+        Every response to this request SHALL contain the same ID.
+      schema:
+        type: string
+        format: uuid
+      example: "9d863a1c-e981-4fc1-b3be-8c39ec35bc38"
+
+    OCPI-from-country-code:
+      name: OCPI-from-country-code
+      in: header
+      required: false
+      description: >-
+        ISO-3166 alpha-2 country code of the party this message is sent from.
+        Required for Functional Modules when routing via Hub or Platform.
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 2
+
+    OCPI-from-party-id:
+      name: OCPI-from-party-id
+      in: header
+      required: false
+      description: >-
+        Party ID of the connected party this message is sent from.
+        Required for Functional Modules when routing via Hub or Platform.
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 3
+
+    OCPI-to-country-code:
+      name: OCPI-to-country-code
+      in: header
+      required: false
+      description: >-
+        ISO-3166 alpha-2 country code of the party this message is to be sent to.
+        Required for Functional Modules when routing via Hub or Platform.
+        Can be omitted for Open Routing Requests.
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 2
+
+    OCPI-to-party-id:
+      name: OCPI-to-party-id
+      in: header
+      required: false
+      description: >-
+        Party ID of the connected party this message is to be sent to.
+        Required for Functional Modules when routing via Hub or Platform.
+        Can be omitted for Open Routing Requests.
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 3

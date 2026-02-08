@@ -1,0 +1,385 @@
+# OCPI 2.3.0 - Sessions Module
+# Sender (CPO) and Receiver (eMSP) interfaces for Sessions and Charging Preferences
+openapi: 3.1.0
+info:
+  title: OCPI 2.3.0 - Sessions
+  description: >-
+    The Sessions module provides information about ongoing and completed charging sessions.
+    Includes Charging Preferences support. Data owner is typically the CPO.
+  version: 2.3.0
+  license:
+    name: Creative Commons Attribution-NoDerivatives 4.0 International
+    url: https://creativecommons.org/licenses/by-nd/4.0/
+
+externalDocs:
+  description: OCPI 2.3.0 Specification
+  url: https://github.com/ocpi/ocpi
+
+servers:
+  - url: https://example.com/ocpi/2.3.0
+    description: Example OCPI server
+
+security:
+  - TokenAuth: []
+
+paths:
+  # ---- Sender Interface (CPO) ----
+
+  /sessions:
+    get:
+      operationId: getSessions
+      summary: Get Sessions List (Sender)
+      description: >-
+        Fetch Session objects from the CPO, last updated between date_from and date_to (paginated).
+      tags:
+        - Sessions - Sender
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/date_from'
+        - $ref: './shared/parameters.yaml#/components/parameters/date_to'
+        - $ref: './shared/parameters.yaml#/components/parameters/offset'
+        - $ref: './shared/parameters.yaml#/components/parameters/limit'
+      responses:
+        '200':
+          description: List of Session objects.
+          headers:
+            X-Total-Count:
+              $ref: './shared/headers.yaml#/components/headers/X-Total-Count'
+            X-Limit:
+              $ref: './shared/headers.yaml#/components/headers/X-Limit'
+            Link:
+              $ref: './shared/headers.yaml#/components/headers/Link'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Session'
+        '401':
+          description: Unauthorized.
+
+  /sessions/{session_id}/charging_preferences:
+    put:
+      operationId: putChargingPreferences
+      summary: Set Charging Preferences (Sender)
+      description: >-
+        Set or update the driver's Charging Preferences for an ongoing session.
+        The EVSE must have the CHARGING_PREFERENCES_CAPABLE capability.
+      tags:
+        - Sessions - Sender
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - name: session_id
+          in: path
+          required: true
+          description: Session.id of the Session to set Charging Preferences for.
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargingPreferences'
+      responses:
+        '200':
+          description: Charging Preferences response.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ChargingPreferencesResponse'
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Session not found or EVSE does not support Charging Preferences.
+
+  # ---- Receiver Interface (eMSP) ----
+
+  /sessions/{country_code}/{party_id}/{session_id}:
+    get:
+      operationId: getReceiverSession
+      summary: Get Session (Receiver)
+      description: Retrieve a Session object as stored in the Receiver's system.
+      tags:
+        - Sessions - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      responses:
+        '200':
+          description: The requested Session object.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Session'
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Session not found.
+
+    put:
+      operationId: putReceiverSession
+      summary: Push Session (Receiver)
+      description: >-
+        Push a new or updated Session object to the Receiver. A new Session replaces
+        any existing Session. charging_periods from new Session replace old ones.
+      tags:
+        - Sessions - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Session'
+      responses:
+        '200':
+          description: Session updated.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '201':
+          description: Session created.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '401':
+          description: Unauthorized.
+
+    patch:
+      operationId: patchReceiverSession
+      summary: Partially Update Session (Receiver)
+      description: >-
+        Push partial updates to a Session. MUST contain last_updated.
+        For charging_periods: acts as a request to add ChargingPeriod objects.
+        To replace or remove charging_periods, use PUT instead.
+      tags:
+        - Sessions - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
+        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Partial Session object. MUST contain last_updated.
+              additionalProperties: true
+      responses:
+        '200':
+          description: Session partially updated.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '401':
+          description: Unauthorized.
+
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: OCPI credentials token passed in the Authorization header.
+  schemas:
+    Session:
+      type: object
+      description: Describes one charging session. Does not require energy transfer.
+      required:
+        - country_code
+        - party_id
+        - id
+        - start_date_time
+        - kwh
+        - cdr_token
+        - auth_method
+        - location_id
+        - evse_uid
+        - connector_id
+        - currency
+        - status
+        - last_updated
+      properties:
+        country_code:
+          type: string
+          maxLength: 2
+          description: ISO-3166 alpha-2 country code of the CPO that owns this Session.
+        party_id:
+          type: string
+          maxLength: 3
+          description: ID of the CPO that owns this Session.
+        id:
+          type: string
+          maxLength: 36
+          description: Unique ID of the charging session in the CPO platform.
+        start_date_time:
+          $ref: './shared/common.yaml#/components/schemas/DateTime'
+        end_date_time:
+          $ref: './shared/common.yaml#/components/schemas/DateTime'
+        kwh:
+          type: number
+          description: How many kWh were charged.
+        cdr_token:
+          $ref: './cdrs.yaml#/components/schemas/CdrToken'
+        auth_method:
+          $ref: './cdrs.yaml#/components/schemas/AuthMethod'
+        authorization_reference:
+          type: string
+          maxLength: 36
+          description: Reference to the authorization given by the eMSP.
+        location_id:
+          type: string
+          maxLength: 36
+          description: Location.id where the charging session is/was happening.
+        evse_uid:
+          type: string
+          maxLength: 36
+          description: EVSE.uid of the EVSE. Can be '#NA' for reservation without assigned EVSE.
+        connector_id:
+          type: string
+          maxLength: 36
+          description: Connector.id of the Connector. Can be '#NA' for reservation without assigned connector.
+        meter_id:
+          type: string
+          maxLength: 255
+          description: Optional identification of the kWh meter.
+        currency:
+          type: string
+          maxLength: 3
+          description: ISO-4217 code of the currency used for this session.
+        charging_periods:
+          type: array
+          items:
+            $ref: './cdrs.yaml#/components/schemas/ChargingPeriod'
+          description: List of Charging Periods to calculate/verify total cost.
+        total_cost:
+          $ref: './shared/common.yaml#/components/schemas/Price'
+        status:
+          $ref: '#/components/schemas/SessionStatus'
+        last_updated:
+          $ref: './shared/common.yaml#/components/schemas/DateTime'
+      additionalProperties: true
+
+    ChargingPreferences:
+      type: object
+      description: Contains the charging preferences of an EV driver.
+      required:
+        - profile_type
+      properties:
+        profile_type:
+          $ref: '#/components/schemas/ProfileType'
+        departure_time:
+          $ref: './shared/common.yaml#/components/schemas/DateTime'
+        energy_need:
+          type: number
+          description: Requested amount of energy in kWh.
+        discharge_allowed:
+          type: boolean
+          description: >-
+            Whether the driver allows the EV to be discharged when needed.
+            Default if omitted: false.
+      additionalProperties: true
+
+    # ---- Enums ----
+
+    SessionStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - COMPLETED
+        - INVALID
+        - PENDING
+        - RESERVATION
+      description: The status of a charging session.
+
+    ProfileType:
+      type: string
+      enum:
+        - CHEAP
+        - FAST
+        - GREEN
+        - REGULAR
+      description: Type of smart charging profile selected by the driver.
+
+    ChargingPreferencesResponse:
+      type: string
+      enum:
+        - ACCEPTED
+        - DEPARTURE_REQUIRED
+        - ENERGY_NEED_REQUIRED
+        - NOT_POSSIBLE
+        - PROFILE_TYPE_NOT_SUPPORTED
+      description: Response to a PUT Charging Preferences request.

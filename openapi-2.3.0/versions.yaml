@@ -1,0 +1,188 @@
+# OCPI 2.3.0 - Versions Module
+# Version information and version details endpoints
+openapi: 3.1.0
+info:
+  title: OCPI 2.3.0 - Versions
+  description: >-
+    The required base module of OCPI. Via this module, clients can learn which versions
+    of OCPI a server supports, and which modules it supports for each of the versions.
+  version: 2.3.0
+  license:
+    name: Creative Commons Attribution-NoDerivatives 4.0 International
+    url: https://creativecommons.org/licenses/by-nd/4.0/
+
+externalDocs:
+  description: OCPI 2.3.0 Specification
+  url: https://github.com/ocpi/ocpi
+
+servers:
+  - url: https://example.com/ocpi
+    description: Example OCPI server
+
+security:
+  - TokenAuth: []
+
+paths:
+  /versions:
+    get:
+      operationId: getVersions
+      summary: Get Supported Versions
+      description: Fetch all supported OCPI versions of this CPO or eMSP.
+      tags:
+        - Versions
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+      responses:
+        '200':
+          description: List of supported OCPI versions.
+          headers:
+            X-Request-ID:
+              $ref: './shared/headers.yaml#/components/headers/X-Total-Count'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Version'
+        '401':
+          description: Unauthorized - Missing or invalid credentials token.
+
+  /versions/{version}:
+    get:
+      operationId: getVersionDetails
+      summary: Get Version Details
+      description: >-
+        Fetch information about the supported endpoints and their URLs for a specific OCPI version.
+      tags:
+        - Versions
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - name: version
+          in: path
+          required: true
+          description: The version number to get details for.
+          schema:
+            $ref: '#/components/schemas/VersionNumber'
+      responses:
+        '200':
+          description: Version details with supported endpoints.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/VersionDetails'
+        '401':
+          description: Unauthorized - Missing or invalid credentials token.
+        '404':
+          description: Version not supported.
+
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: OCPI credentials token passed in the Authorization header.
+  schemas:
+    Version:
+      type: object
+      description: OCPI version information.
+      required:
+        - version
+        - url
+      properties:
+        version:
+          $ref: '#/components/schemas/VersionNumber'
+        url:
+          type: string
+          format: uri
+          maxLength: 255
+          description: URL to the endpoint containing version specific information.
+      additionalProperties: true
+
+    VersionDetails:
+      type: object
+      description: Detailed information about a specific OCPI version.
+      required:
+        - version
+        - endpoints
+      properties:
+        version:
+          $ref: '#/components/schemas/VersionNumber'
+        endpoints:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Endpoint'
+          description: A list of supported endpoints for this version.
+      additionalProperties: true
+
+    Endpoint:
+      type: object
+      description: Information about a supported OCPI endpoint.
+      required:
+        - identifier
+        - role
+        - url
+      properties:
+        identifier:
+          $ref: '#/components/schemas/ModuleID'
+        role:
+          $ref: '#/components/schemas/InterfaceRole'
+        url:
+          type: string
+          format: uri
+          maxLength: 255
+          description: URL to the endpoint.
+      additionalProperties: true
+
+    InterfaceRole:
+      type: string
+      enum:
+        - SENDER
+        - RECEIVER
+      description: >-
+        The role of an interface. SENDER is implemented by the owner of data (for Pull).
+        RECEIVER is implemented by the receiver of data (for Push).
+
+    ModuleID:
+      anyOf:
+        - type: string
+          enum:
+            - cdrs
+            - chargingprofiles
+            - commands
+            - credentials
+            - hubclientinfo
+            - locations
+            - sessions
+            - tariffs
+            - tokens
+        - type: string
+      description: The identifier of an OCPI module.
+
+    VersionNumber:
+      anyOf:
+        - type: string
+          enum:
+            - "2.0"
+            - "2.1"
+            - "2.1.1"
+            - "2.2"
+            - "2.2.1"
+            - "2.3.0"
+        - type: string
+      description: List of known OCPI version numbers.

@@ -1,0 +1,425 @@
+# OCPI 2.3.0 - Charging Profiles Module
+# Sender (eMSP/SCSP) and Receiver (CPO) interfaces for charging profile management
+openapi: 3.1.0
+info:
+  title: OCPI 2.3.0 - Charging Profiles
+  description: >-
+    The ChargingProfiles module enables eMSPs and SCSPs to send charging profiles
+    to CPOs for smart charging. Uses async callbacks via response_url.
+  version: 2.3.0
+  license:
+    name: Creative Commons Attribution-NoDerivatives 4.0 International
+    url: https://creativecommons.org/licenses/by-nd/4.0/
+
+externalDocs:
+  description: OCPI 2.3.0 Specification
+  url: https://github.com/ocpi/ocpi
+
+servers:
+  - url: https://example.com/ocpi/2.3.0
+    description: Example OCPI server
+
+security:
+  - TokenAuth: []
+
+paths:
+  # ---- Receiver Interface (CPO) ----
+
+  /chargingprofiles/{session_id}:
+    get:
+      operationId: getChargingProfile
+      summary: Get Active Charging Profile (Receiver)
+      description: >-
+        Request the active charging profile for a session. The result is sent
+        asynchronously to the response_url.
+      tags:
+        - ChargingProfiles - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - name: session_id
+          in: path
+          required: true
+          description: The unique id that identifies the session.
+          schema:
+            type: string
+            maxLength: 36
+        - name: duration
+          in: query
+          required: true
+          description: Length of the requested ActiveChargingProfile in seconds.
+          schema:
+            type: integer
+        - name: response_url
+          in: query
+          required: true
+          description: URL that the ActiveChargingProfileResult POST should be sent to.
+          schema:
+            type: string
+            format: uri
+      responses:
+        '200':
+          description: Request acknowledged.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ChargingProfileResponse'
+        '401':
+          description: Unauthorized.
+      callbacks:
+        activeChargingProfileResult:
+          '{$request.query.response_url}':
+            post:
+              summary: Async ActiveChargingProfile result
+              description: CPO sends the active charging profile result to the Sender's response_url.
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/ActiveChargingProfileResult'
+              responses:
+                '200':
+                  description: Result received.
+                  content:
+                    application/json:
+                      schema:
+                        $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                '400':
+                  description: Invalid callback payload.
+
+    put:
+      operationId: putChargingProfile
+      summary: Set Charging Profile (Receiver)
+      description: >-
+        Set or update a charging profile for a session. The result is sent
+        asynchronously to the response_url in the request body.
+      tags:
+        - ChargingProfiles - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - name: session_id
+          in: path
+          required: true
+          description: The unique id that identifies the session.
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetChargingProfile'
+      responses:
+        '200':
+          description: Request acknowledged.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ChargingProfileResponse'
+        '401':
+          description: Unauthorized.
+      callbacks:
+        chargingProfileResult:
+          '{$request.body#/response_url}':
+            post:
+              summary: Async ChargingProfile result
+              description: CPO sends the charging profile result to the Sender's response_url.
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/ChargingProfileResult'
+              responses:
+                '200':
+                  description: Result received.
+                  content:
+                    application/json:
+                      schema:
+                        $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                '400':
+                  description: Invalid callback payload.
+
+    delete:
+      operationId: deleteChargingProfile
+      summary: Clear Charging Profile (Receiver)
+      description: >-
+        Clear/remove the charging profile for a session. The result is sent
+        asynchronously to the response_url.
+      tags:
+        - ChargingProfiles - Receiver
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - name: session_id
+          in: path
+          required: true
+          description: The unique id that identifies the session.
+          schema:
+            type: string
+            maxLength: 36
+        - name: response_url
+          in: query
+          required: true
+          description: URL that the ClearProfileResult POST should be sent to.
+          schema:
+            type: string
+            format: uri
+      responses:
+        '200':
+          description: Request acknowledged.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ChargingProfileResponse'
+        '401':
+          description: Unauthorized.
+      callbacks:
+        clearProfileResult:
+          '{$request.query.response_url}':
+            post:
+              summary: Async ClearProfile result
+              description: CPO sends the clear profile result to the Sender's response_url.
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/ClearProfileResult'
+              responses:
+                '200':
+                  description: Result received.
+                  content:
+                    application/json:
+                      schema:
+                        $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                '400':
+                  description: Invalid callback payload.
+
+  # ---- Sender Interface (eMSP/SCSP) ----
+
+  /chargingprofiles/{session_id}/activeprofile:
+    put:
+      operationId: putSenderActiveChargingProfile
+      summary: Update Active Charging Profile (Sender)
+      description: >-
+        CPO pushes an updated ActiveChargingProfile to the Sender when changes occur
+        that influence the profile for an ongoing session. Only sent after the Sender has
+        at least once successfully called the Receiver PUT interface for the session.
+      tags:
+        - ChargingProfiles - Sender
+      parameters:
+        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
+        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+        - name: session_id
+          in: path
+          required: true
+          description: The unique id that identifies the session.
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActiveChargingProfile'
+      responses:
+        '200':
+          description: Active profile update received.
+          content:
+            application/json:
+              schema:
+                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+        '401':
+          description: Unauthorized.
+
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: OCPI credentials token passed in the Authorization header.
+  schemas:
+    # ---- Main Objects ----
+
+    ChargingProfile:
+      type: object
+      description: Defines power or current limits over time for a charging session.
+      required:
+        - charging_rate_unit
+      properties:
+        start_date_time:
+          $ref: './shared/common.yaml#/components/schemas/DateTime'
+        duration:
+          type: integer
+          description: Duration of the charging profile in seconds.
+        charging_rate_unit:
+          $ref: '#/components/schemas/ChargingRateUnit'
+        min_charging_rate:
+          type: number
+          description: Minimum charging rate supported by the EV.
+        charging_profile_period:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChargingProfilePeriod'
+          description: List of periods defining max power/current over time.
+      additionalProperties: true
+
+    ChargingProfilePeriod:
+      type: object
+      description: A single period within a charging profile.
+      required:
+        - start_period
+        - limit
+      properties:
+        start_period:
+          type: integer
+          description: Start of the period in seconds from profile start.
+        limit:
+          type: number
+          description: Charging rate limit in the applicable unit (Amperes or Watts).
+      additionalProperties: true
+
+    ActiveChargingProfile:
+      type: object
+      description: The currently active charging profile at the EVSE.
+      required:
+        - start_date_time
+        - charging_profile
+      properties:
+        start_date_time:
+          $ref: './shared/common.yaml#/components/schemas/DateTime'
+        charging_profile:
+          $ref: '#/components/schemas/ChargingProfile'
+      additionalProperties: true
+
+    SetChargingProfile:
+      type: object
+      description: Request to set or update a charging profile for a session.
+      required:
+        - charging_profile
+        - response_url
+      properties:
+        charging_profile:
+          $ref: '#/components/schemas/ChargingProfile'
+        response_url:
+          type: string
+          format: uri
+          maxLength: 255
+          description: URL that the ChargingProfileResult POST should be sent to.
+      additionalProperties: true
+
+    # ---- Response/Result Objects ----
+
+    ChargingProfileResponse:
+      type: object
+      description: Immediate response from CPO indicating whether the request was forwarded.
+      required:
+        - result
+        - timeout
+      properties:
+        result:
+          $ref: '#/components/schemas/ChargingProfileResponseType'
+        timeout:
+          type: integer
+          description: Timeout in seconds for the async result.
+      additionalProperties: true
+
+    ActiveChargingProfileResult:
+      type: object
+      description: Async result of a GET ActiveChargingProfile request.
+      required:
+        - result
+      properties:
+        result:
+          $ref: '#/components/schemas/ChargingProfileResultType'
+        profile:
+          $ref: '#/components/schemas/ActiveChargingProfile'
+      additionalProperties: true
+
+    ChargingProfileResult:
+      type: object
+      description: Async result of a PUT ChargingProfile request.
+      required:
+        - result
+      properties:
+        result:
+          $ref: '#/components/schemas/ChargingProfileResultType'
+      additionalProperties: true
+
+    ClearProfileResult:
+      type: object
+      description: Async result of a DELETE ChargingProfile request.
+      required:
+        - result
+      properties:
+        result:
+          $ref: '#/components/schemas/ChargingProfileResultType'
+      additionalProperties: true
+
+    # ---- Enums ----
+
+    ChargingRateUnit:
+      type: string
+      enum:
+        - W
+        - A
+      description: "Unit of measure for charging rate: W (Watts) or A (Amperes per phase)."
+
+    ChargingProfileResponseType:
+      type: string
+      enum:
+        - ACCEPTED
+        - NOT_SUPPORTED
+        - REJECTED
+        - TOO_OFTEN
+        - UNKNOWN_SESSION
+      description: Response from CPO on a charging profile request.
+
+    ChargingProfileResultType:
+      type: string
+      enum:
+        - ACCEPTED
+        - REJECTED
+        - UNKNOWN
+      description: Result from the EVSE on a charging profile request.

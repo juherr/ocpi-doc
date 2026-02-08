@@ -522,6 +522,24 @@ function writeAboutPage(pagesDir) {
   writeFile(path.join(pagesDir, 'about.adoc'), `${aboutPageContent()}\n`)
 }
 
+function communityPageContent() {
+  return `= Community
+
+Find where OCPI practitioners discuss implementations, tooling, and interoperability.
+
+== Join the community
+
+* https://evroaming.org[EV Roaming Foundation] - official ecosystem and governance resources.
+* https://www.reddit.com/r/ocpi/[Reddit: r/ocpi] - open community discussions.
+* https://ocpi.slack.com[OCPI Slack] - real-time discussions with implementers.
+* https://discord.gg/kd7dtcZkmt[Discord: EV Devs and Data] - developer-focused chat and data topics.
+`
+}
+
+function writeCommunityPage(pagesDir) {
+  writeFile(path.join(pagesDir, 'community.adoc'), `${communityPageContent()}\n`)
+}
+
 function compareLibraries(a, b) {
   const tech = a.technology.localeCompare(b.technology)
   if (tech !== 0) {
@@ -662,6 +680,7 @@ function generateComponentPages(componentDir, version, asciidocFiles) {
 
   writeVersionHomePage(pagesDir, version)
   writeLibraryPage(pagesDir, version)
+  writeCommunityPage(pagesDir)
   writeAboutPage(pagesDir)
 
   const navLines = ['* xref:index.adoc[Home]', '* Spec']
@@ -687,6 +706,7 @@ include::partial$src/${partialName}[]
   }
 
   navLines.push('* xref:library.adoc[Library]')
+  navLines.push('* xref:community.adoc[Community]')
   navLines.push('* xref:about.adoc[About]')
 
   writeFile(path.join(moduleRoot, 'nav.adoc'), `${navLines.join('\n')}\n`)
@@ -700,9 +720,10 @@ function generateFallbackComponent(componentDir, version) {
 
   writeFallbackHomePage(pagesDir, version)
   writeLibraryPage(pagesDir, version)
+  writeCommunityPage(pagesDir)
   writeAboutPage(pagesDir)
 
-  writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n* xref:library.adoc[Library]\n* xref:about.adoc[About]\n')
+  writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n* xref:library.adoc[Library]\n* xref:community.adoc[Community]\n* xref:about.adoc[About]\n')
 }
 
 function syncVersion(versionInfo) {

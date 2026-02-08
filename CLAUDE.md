@@ -26,7 +26,7 @@ Maintenance reminder:
 - `npm run build:swagger` generates one Swagger UI page per version in `public/api/<version>/swagger/index.html`.
 - `/api/` must point to the latest version (generated as a redirect page).
 - The public website is English-only; navigation labels and generated UI text must stay in English.
-- Antora version navigation includes `Home`, `Spec`, `Library`, and `About`.
+- Antora version navigation includes `Home`, `Spec`, `Library`, `Community`, and `About`.
 - Library entries are version-specific.
 - Active projects are grouped by technology.
 - Inactive projects are listed in an `Inactive Libraries` section with a `Language` column.

@@ -5,7 +5,14 @@ const ROOT_DIR = process.cwd()
 const SPECIFICATIONS_DIR = path.join(ROOT_DIR, 'specifications')
 const OUTPUT_ROOT = path.join(ROOT_DIR, 'antora', 'components')
 
-const IGNORE_ASCIIDOC = new Set(['pdf_layout.asciidoc'])
+const IGNORE_DOC_FILES = new Set([
+  'pdf_layout.asciidoc',
+  'README.md',
+  'CONTRIBUTING.md',
+  'template-object-description.asciidoc',
+  'template-object-description.md',
+])
+const ROOT_ASSET_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.svg', '.gif'])
 const DEPRECATED_VERSIONS = {
   '2.2.0': '2.2.1',
 }
@@ -68,16 +75,21 @@ function listSpecificationVersions() {
     .sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }))
 }
 
-function listRootAsciidocFiles(sourceDir) {
+function listRootDocFiles(sourceDir) {
   return fs
     .readdirSync(sourceDir, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name.endsWith('.asciidoc') && !IGNORE_ASCIIDOC.has(entry.name))
+    .filter(
+      (entry) =>
+        entry.isFile() &&
+        (entry.name.endsWith('.asciidoc') || entry.name.endsWith('.md')) &&
+        !IGNORE_DOC_FILES.has(entry.name)
+    )
     .map((entry) => entry.name)
     .sort((a, b) => a.localeCompare(b))
 }
 
 function toAdocName(fileName) {
-  return fileName.replace(/\.asciidoc$/, '.adoc')
+  return fileName.replace(/\.(asciidoc|md)$/, '.adoc')
 }
 
 function rewriteAsciidocReferences(content) {
@@ -90,8 +102,147 @@ function rewriteAsciidocReferences(content) {
     .replace(/xref:((?!spec\/)[a-z0-9_\-]+\.adoc)/gi, 'xref:spec/$1')
 }
 
+function convertMarkdownInlineLinks(text) {
+  return text
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/\{\[([^\]]+)\]\([^\)]+\)\}/g, '{$1}')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, 'image::$2[$1]')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, rawTarget) => {
+      const target = rawTarget.trim()
+
+      if (target.startsWith('#')) {
+        return `xref:${target}[${label}]`
+      }
+
+      if (/^(https?:\/\/|mailto:)/i.test(target)) {
+        return `${target}[${label}]`
+      }
+
+      if (/\.(md|asciidoc)(#.*)?$/i.test(target)) {
+        const rewritten = target
+          .replace(/\.md(?=#|$)/gi, '.adoc')
+          .replace(/\.asciidoc(?=#|$)/gi, '.adoc')
+          .replace(/mod_command\.adoc/gi, 'mod_commands.adoc')
+          .replace(/^([^/].*)$/, 'spec/$1')
+        return `xref:${rewritten}[${label}]`
+      }
+
+      return `link:${target}[${label}]`
+    })
+}
+
+function convertMarkdownTableLines(lines) {
+  const converted = ['|===']
+  let expectedColumnCount = 0
+  let hasInvalidRow = false
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed.startsWith('|')) {
+      continue
+    }
+
+    const cells = trimmed
+      .replace(/^\s*\|\s*/, '')
+      .replace(/\|\s*$/, '')
+      .split(/(?<!\\)\|/)
+      .map((cell) => convertMarkdownInlineLinks(cell.trim()).replace(/\\\|/g, '\\|'))
+    while (cells.length > 0 && cells[cells.length - 1] === '') {
+      cells.pop()
+    }
+    if (!expectedColumnCount) {
+      expectedColumnCount = cells.length
+    }
+    if (expectedColumnCount && cells.length > expectedColumnCount) {
+      const head = cells.slice(0, expectedColumnCount - 1)
+      const tail = cells.slice(expectedColumnCount - 1).join(' | ')
+      cells.length = 0
+      cells.push(...head, tail)
+    }
+    if (expectedColumnCount && cells.length !== expectedColumnCount) {
+      hasInvalidRow = true
+      break
+    }
+    converted.push(`| ${cells.join(' | ')}`)
+  }
+  if (hasInvalidRow) {
+    return ['[listing]', '....', ...lines, '....']
+  }
+  converted.push('|===')
+  return converted
+}
+
+function convertMarkdownToAsciidoc(content) {
+  const sourceLines = content.replace(/\r\n/g, '\n').split('\n')
+  const output = []
+  let inCodeBlock = false
+  const firstHeadingLevel = sourceLines.reduce((acc, line) => {
+    if (acc) {
+      return acc
+    }
+    const heading = line.match(/^(#{1,6})\s+/)
+    return heading ? heading[1].length : 0
+  }, 0)
+
+  for (let i = 0; i < sourceLines.length; i += 1) {
+    const line = sourceLines[i]
+    const trimmed = line.trim()
+
+    const codeFence = trimmed.match(/^```\s*([A-Za-z0-9_-]+)?\s*$/)
+    if (codeFence) {
+      if (!inCodeBlock) {
+        const lang = codeFence[1]
+        if (lang) {
+          output.push(`[source,${lang.toLowerCase()}]`)
+        }
+        output.push('----')
+        inCodeBlock = true
+      } else {
+        output.push('----')
+        inCodeBlock = false
+      }
+      continue
+    }
+
+    if (inCodeBlock) {
+      output.push(line)
+      continue
+    }
+
+    if (/^<div><!--.*--><\/div>$/.test(trimmed) || /^&nbsp;\s*$/.test(trimmed)) {
+      output.push('')
+      continue
+    }
+
+    const heading = line.match(/^(#{1,6})\s+(.*)$/)
+    if (heading) {
+      const normalizedLevel = firstHeadingLevel
+        ? Math.max(2, heading[1].length - firstHeadingLevel + 2)
+        : heading[1].length + 1
+      output.push(`${'='.repeat(normalizedLevel)} ${convertMarkdownInlineLinks(heading[2])}`)
+      continue
+    }
+
+    const isTableStart = trimmed.startsWith('|') && i + 1 < sourceLines.length && /^\s*\|?\s*:?-{3,}/.test(sourceLines[i + 1])
+    if (isTableStart) {
+      const tableLines = [line]
+      i += 2
+      while (i < sourceLines.length && sourceLines[i].trim().startsWith('|')) {
+        tableLines.push(sourceLines[i])
+        i += 1
+      }
+      i -= 1
+      output.push(...convertMarkdownTableLines(tableLines))
+      continue
+    }
+
+    output.push(convertMarkdownInlineLinks(line))
+  }
+
+  return output.join('\n')
+}
+
 function titleFromFilename(fileName) {
-  const baseName = fileName.replace(/\.asciidoc$/, '')
+  const baseName = fileName.replace(/\.(asciidoc|md)$/, '')
   const normalized = baseName.replace(/^mod_/, '').replace(/[_-]+/g, ' ').trim()
   return normalized
     .split(' ')
@@ -235,7 +386,7 @@ function syncVersion(versionInfo) {
   const moduleRoot = path.join(componentDir, 'modules', 'ROOT')
   const partialsSourceDir = path.join(moduleRoot, 'partials', 'src')
 
-  const asciidocFiles = listRootAsciidocFiles(sourceDir)
+  const docFiles = listRootDocFiles(sourceDir)
 
   if (fileExists(componentDir)) {
     fs.rmSync(componentDir, { recursive: true, force: true })
@@ -243,7 +394,7 @@ function syncVersion(versionInfo) {
 
   writeAntoraDescriptor(componentDir, version)
 
-  if (!asciidocFiles.length) {
+  if (!docFiles.length) {
     generateFallbackComponent(componentDir, version)
     return {
       folderName,
@@ -253,22 +404,37 @@ function syncVersion(versionInfo) {
     }
   }
 
-  generateComponentPages(componentDir, version, asciidocFiles)
+  generateComponentPages(componentDir, version, docFiles)
 
-  for (const fileName of asciidocFiles) {
+  for (const fileName of docFiles) {
     const sourcePath = path.join(sourceDir, fileName)
     const targetPath = path.join(partialsSourceDir, toAdocName(fileName))
     const sourceContent = fs.readFileSync(sourcePath, 'utf8')
-    writeFile(targetPath, rewriteAsciidocReferences(sourceContent))
+    const transformedContent = fileName.endsWith('.md')
+      ? convertMarkdownToAsciidoc(sourceContent)
+      : rewriteAsciidocReferences(sourceContent)
+    writeFile(targetPath, transformedContent)
   }
 
   copyDirRecursive(path.join(sourceDir, 'examples'), path.join(partialsSourceDir, 'examples'))
   copyDirRecursive(path.join(sourceDir, 'images'), path.join(moduleRoot, 'images', 'images'))
+  copyDirRecursive(path.join(sourceDir, 'data'), path.join(moduleRoot, 'images', 'data'))
+
+  for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
+    if (!entry.isFile()) {
+      continue
+    }
+    const ext = path.extname(entry.name).toLowerCase()
+    if (!ROOT_ASSET_EXTENSIONS.has(ext)) {
+      continue
+    }
+    fs.copyFileSync(path.join(sourceDir, entry.name), path.join(moduleRoot, 'images', entry.name))
+  }
 
   return {
     folderName,
     version,
-    fileCount: asciidocFiles.length,
+    fileCount: docFiles.length,
     fallback: false,
   }
 }

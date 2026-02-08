@@ -1,10 +1,10 @@
 // tools/build-swagger-ui.js
 // Build a static Swagger UI site for OCPI OpenAPI specs, compatible with multi-version layout.
 // Output structure:
-//   dist/swagger-ui/<version>/index.html
-//   dist/swagger-ui/<version>/openapi.yaml            (bundled, recommended)
-//   dist/swagger-ui/<version>/(swagger-ui assets...)
-//   (optional) dist/swagger-ui/<version>/openapi.raw.yaml (root with refs)
+//   public/api/<version>/swagger/index.html
+//   public/api/<version>/swagger/openapi.yaml            (bundled, recommended)
+//   public/api/<version>/swagger/(swagger-ui assets...)
+//   (optional) public/api/<version>/swagger/openapi.raw.yaml (root with refs)
 //
 // Usage:
 //   npm i -D swagger-ui-dist swagger-cli yaml
@@ -28,7 +28,7 @@ const swaggerUiDistDir = path.dirname(require.resolve("swagger-ui-dist/package.j
 const swaggerUiAssetsDir = swaggerUiDistDir; // contains swagger-ui.css/js files
 
 const ROOT_DIR = process.cwd();
-const DIST_DIR = path.join(ROOT_DIR, "dist", "swagger-ui");
+const PUBLIC_API_DIR = path.join(ROOT_DIR, "public", "api");
 
 // ---- Helpers ----------------------------------------------------------------
 function ensureDir(p) {
@@ -90,32 +90,116 @@ function generateIndexHtml(version) {
   <title>OCPI ${version} – Swagger UI</title>
   <link rel="stylesheet" href="./swagger-ui.css" />
   <style>
-    body { margin: 0; }
+    body { margin: 0; background: #f8fafc; }
     .topbar {
-      padding: 10px;
-      background: #fafafa;
+      min-height: 56px;
+      padding: 8px 16px;
+      background: #171717;
+      color: #ffffff;
       display: flex;
-      gap: 10px;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #2b2b2b;
+    }
+    .topbar .topbar-left {
+      display: inline-flex;
+      gap: 12px;
       align-items: center;
       flex-wrap: wrap;
-      border-bottom: 1px solid #eee;
+    }
+    .topbar .back-link {
+      display: inline-flex;
+      align-items: center;
+      color: #e5e7eb;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .topbar .back-link:hover,
+    .topbar .back-link:focus {
+      color: #ffffff;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .topbar .version-label {
+      color: #9ca3af;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .topbar .topbar-tools {
+      margin-left: auto;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
     }
     .topbar input { width: 420px; max-width: 90vw; }
     .topbar button, .topbar input { padding: 6px 8px; }
+    .topbar input {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #0f172a;
+    }
+    .topbar .topbar-tools label {
+      color: #e5e7eb;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .topbar #apply {
+      border: 1px solid #334155;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #1e293b;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .topbar #apply:hover,
+    .topbar #apply:focus {
+      background: #e2e8f0;
+      border-color: #475569;
+    }
+    @media (max-width: 768px) {
+      .topbar {
+        min-height: 0;
+        padding: 10px 12px;
+        gap: 8px;
+      }
+      .topbar .topbar-tools {
+        width: 100%;
+        margin-left: 0;
+      }
+      .topbar input {
+        width: min(420px, 100%);
+      }
+    }
   </style>
 </head>
 <body>
   <div class="topbar">
-    <strong>OCPI ${version}</strong>
-    <label>Server</label>
-    <input id="server" placeholder="https://api.example.com" />
-    <button id="apply">Apply</button>
+    <div class="topbar-left">
+      <a class="back-link" href="/ocpi/${version}/index.html">Back to specification</a>
+      <span class="version-label">OCPI ${version} - Swagger UI</span>
+    </div>
+    <div class="topbar-tools">
+      <label for="server">Server</label>
+      <input id="server" placeholder="https://api.example.com" />
+      <button id="apply">Apply</button>
+    </div>
   </div>
 
   <div id="swagger-ui"></div>
 
   <script src="./swagger-ui-bundle.js"></script>
-  <script src="./swagger-ui-standalone-preset.js"></script>
   <script>
     const STORAGE_KEY = "ocpi.swagger.server.${version}";
     const SPEC_URL = "./openapi.yaml";
@@ -132,8 +216,18 @@ function generateIndexHtml(version) {
       return SwaggerUIBundle({
         url: SPEC_URL,
         dom_id: "#swagger-ui",
-        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
-        layout: "StandaloneLayout",
+        presets: [SwaggerUIBundle.presets.apis],
+        layout: "BaseLayout",
+        deepLinking: true,
+        docExpansion: "list",
+        defaultModelsExpandDepth: -1,
+        displayRequestDuration: true,
+        filter: true,
+        tagsSorter: "alpha",
+        operationsSorter: "alpha",
+        persistAuthorization: true,
+        tryItOutEnabled: true,
+        validatorUrl: null,
         requestInterceptor: (req) => {
           const custom = (server || "").trim();
           if (!custom) return req;
@@ -184,7 +278,7 @@ function main() {
     process.exit(1);
   }
 
-  ensureDir(DIST_DIR);
+  ensureDir(PUBLIC_API_DIR);
 
   for (const version of versions) {
     const srcDir = path.join(ROOT_DIR, "openapi", `ocpi-${version}`);
@@ -196,10 +290,13 @@ function main() {
       process.exit(1);
     }
 
-    const outDir = path.join(DIST_DIR, version);
+    const outDir = path.join(PUBLIC_API_DIR, version, "swagger");
+    if (fileExists(outDir)) {
+      fs.rmSync(outDir, { recursive: true, force: true });
+    }
     ensureDir(outDir);
 
-    // 1) Copy Swagger UI static assets to dist/swagger-ui/<version>/
+    // 1) Copy Swagger UI static assets to public/api/<version>/swagger/
     copyDirFlat(swaggerUiAssetsDir, outDir);
 
     // 2) Bundle the root spec to avoid $ref HTTP resolution issues in browsers
@@ -212,14 +309,10 @@ function main() {
     // 3) Generate index.html for this version (no version selector)
     writeFile(path.join(outDir, "index.html"), generateIndexHtml(version));
 
-    console.log(`✔ Built Swagger UI for OCPI ${version}: ${path.relative(ROOT_DIR, outDir)}/index.html`);
+    console.log(`Built Swagger UI for OCPI ${version}: public/api/${version}/swagger/index.html`);
   }
 
-  console.log("\nLocal test:");
-  console.log("  cd dist/swagger-ui");
-  console.log("  python3 -m http.server 8080");
-  console.log("\nThen open:");
-  console.log("  http://localhost:8080/<version>/");
+  console.log("\nSwagger UI pages are available under public/api/<version>/swagger/");
 }
 
 main();

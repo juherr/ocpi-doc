@@ -55,6 +55,13 @@ Each version folder is treated as a versioned Antora content source.
 
 The Antora playbook references all version folders and renders one site with version navigation.
 
+### Version status
+
+- `2.3.0`: current release branch
+- `2.2.1`: stable maintained release
+- `2.2.0`: deprecated, replaced by `2.2.1`
+- `2.1.1`: imported from upstream (Markdown-based source)
+
 Typical local build:
 
 ```bash

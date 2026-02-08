@@ -6,6 +6,9 @@ const SPECIFICATIONS_DIR = path.join(ROOT_DIR, 'specifications')
 const OUTPUT_ROOT = path.join(ROOT_DIR, 'antora', 'components')
 
 const IGNORE_ASCIIDOC = new Set(['pdf_layout.asciidoc'])
+const DEPRECATED_VERSIONS = {
+  '2.2.0': '2.2.1',
+}
 
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true })
@@ -98,13 +101,52 @@ function writeFile(filePath, content) {
 
 function writeAntoraDescriptor(componentDir, version) {
   const antoraYmlPath = path.join(componentDir, 'antora.yml')
+  const replacementVersion = DEPRECATED_VERSIONS[version]
+  const displayVersion = replacementVersion ? `${version} (deprecated)` : version
+  const prereleaseLine = replacementVersion ? 'prerelease: true\n' : ''
   writeFile(
     antoraYmlPath,
     `name: ocpi
 title: OCPI
 version: ${version}
-nav:
+display_version: ${displayVersion}
+${prereleaseLine}nav:
   - modules/ROOT/nav.adoc
+`
+  )
+}
+
+function deprecatedNotice(version) {
+  const replacementVersion = DEPRECATED_VERSIONS[version]
+  if (!replacementVersion) {
+    return ''
+  }
+
+  return `\n[IMPORTANT]\n====\nThis version is deprecated. Use OCPI ${replacementVersion} instead.\n====\n`
+}
+
+function writeVersionHomePage(pagesDir, version) {
+  const notice = deprecatedNotice(version)
+  writeFile(
+    path.join(pagesDir, 'index.adoc'),
+    `= OCPI ${version}
+
+This documentation page is generated from the OCPI \`${version}\` release branch.${notice}
+
+See xref:spec/introduction.adoc[Introduction] to start reading the specification.
+`
+  )
+}
+
+function writeFallbackHomePage(pagesDir, version) {
+  const notice = deprecatedNotice(version)
+  writeFile(
+    path.join(pagesDir, 'index.adoc'),
+    `= OCPI ${version}
+
+This version is imported from upstream, but its source files are not in AsciiDoc format.${notice}
+
+For now, this version is available as source-only under \`specifications/ocpi-${version}\`.
 `
   )
 }
@@ -118,15 +160,7 @@ function generateComponentPages(componentDir, version, asciidocFiles) {
   ensureDir(specPagesDir)
   ensureDir(partialsSourceDir)
 
-  writeFile(
-    path.join(pagesDir, 'index.adoc'),
-    `= OCPI ${version}
-
-This documentation page is generated from the OCPI \`${version}\` release branch.
-
-See xref:spec/introduction.adoc[Introduction] to start reading the specification.
-`
-  )
+  writeVersionHomePage(pagesDir, version)
 
   const navLines = ['* xref:index.adoc[Home]', '* Spec']
 
@@ -157,15 +191,7 @@ function generateFallbackComponent(componentDir, version) {
 
   ensureDir(pagesDir)
 
-  writeFile(
-    path.join(pagesDir, 'index.adoc'),
-    `= OCPI ${version}
-
-This version is imported from upstream, but its source files are not in AsciiDoc format.
-
-For now, this version is available as source-only under \`specifications/ocpi-${version}\`.
-`
-  )
+  writeFallbackHomePage(pagesDir, version)
 
   writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n')
 }

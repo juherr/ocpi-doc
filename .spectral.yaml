@@ -1,0 +1,8 @@
+extends:
+  - spectral:oas
+
+rules:
+  path-params: off
+  operation-tag-defined: off
+  info-contact: off
+  oas3-server-not-example.com: off

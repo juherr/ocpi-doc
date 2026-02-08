@@ -1,0 +1,32 @@
+{
+  "devDependencies": {
+    "@antora/cli": "^3.1.14",
+    "@antora/site-generator": "^3.1.14",
+    "swagger-ui-dist": "^5.31.0",
+    "yaml": "^2.8.2"
+  },
+  "name": "ocpi",
+  "version": "1.0.0",
+  "description": "This repository contains the OCPI specification, latest release: [`OCPI 2.2.1`](https://evroaming.org/app/uploads/2021/11/OCPI-2.2.1.pdf)",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "generate:antora": "node tools/generate-antora-components.js",
+    "build:site": "npm run generate:antora && npx antora antora-playbook.yml",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ocpi/ocpi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ocpi/ocpi/issues"
+  },
+  "homepage": "https://github.com/ocpi/ocpi#readme"
+}

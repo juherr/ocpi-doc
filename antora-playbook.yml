@@ -1,0 +1,59 @@
+site:
+  title: OCPI
+  start_page: ocpi::index.adoc
+
+content:
+  sources:
+    - url: .
+      branches: HEAD
+      start_paths:
+        - antora/components/ocpi-2.3.0
+        - antora/components/ocpi-2.2.1
+        - antora/components/ocpi-2.2.0
+        - antora/components/ocpi-2.1.1
+
+asciidoc:
+  attributes:
+    year: '2026'
+    date_from: '<date_from>'
+    date_to: '<date_to>'
+    offset: '<offset>'
+    limit: '<limit>'
+    country_code: '<country_code>'
+    party_id: '<party_id>'
+    location_id: '<location_id>'
+    evse_uid: '<evse_uid>'
+    connector_id: '<connector_id>'
+    session_id: '<session_id>'
+    terminal_id: '<terminal_id>'
+    financial_advice_confirmation_id: '<financial_advice_confirmation_id>'
+    command: '<command>'
+    type: '<type>'
+    duration: '<duration>'
+    url: '<url>'
+    tariff_id: '<tariff_id>'
+    token_uid: '<token_uid>'
+    base-ocpi-url: '<base-ocpi-url>'
+    end-point: '<end-point>'
+    country-code: '<country-code>'
+    party-id: '<party-id>'
+    object-id: '<object-id>'
+    '3': '3'
+    cdr_endpoint_url: '/cdrs'
+    sessions_endpoint_url: '/sessions'
+    locations_endpoint_url: '/locations'
+    commands_endpoint_url: '/commands'
+    tokens_endpoint_url: '/tokens'
+    token_endpoint_url: '/tokens'
+    tariffs_endpoint_url: '/tariffs'
+    chargingprofiles_endpoint_url: '/chargingprofiles/'
+    payments_terminals_endpoint_url: '/payments/terminals'
+    payments_financial_advice_confirmation_endpoint_url: '/payments/financial_advice_confirmations'
+
+ui:
+  bundle:
+    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable
+    snapshot: true
+
+output:
+  dir: public

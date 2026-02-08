@@ -1,0 +1,9 @@
+extends:
+  - recommended
+
+rules:
+  no-identical-paths: off
+  no-ambiguous-paths: off
+  no-server-example.com: off
+  security-defined: off
+  no-empty-servers: off

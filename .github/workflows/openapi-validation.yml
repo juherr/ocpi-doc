@@ -1,0 +1,42 @@
+name: OpenAPI Validation
+
+on:
+  push:
+    paths:
+      - 'openapi-2.3.0/**'
+      - '.spectral.yaml'
+      - 'redocly.yaml'
+      - 'scripts/check_openapi.sh'
+      - '.github/workflows/openapi-validation.yml'
+  pull_request:
+    paths:
+      - 'openapi-2.3.0/**'
+      - '.spectral.yaml'
+      - 'redocly.yaml'
+      - 'scripts/check_openapi.sh'
+      - '.github/workflows/openapi-validation.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install OpenAPI tooling
+        run: npm install -g @redocly/cli @stoplight/spectral-cli swagger-cli @openapitools/openapi-generator-cli
+
+      - name: Run OpenAPI checks
+        run: bash scripts/check_openapi.sh

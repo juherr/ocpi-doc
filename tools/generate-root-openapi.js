@@ -27,7 +27,7 @@ if (!VERSION) {
 }
 
 // ---- Paths ------------------------------------------------------------------
-const VERSION_DIR = `openapi-${VERSION}`;
+const VERSION_DIR = path.join("openapi", `ocpi-${VERSION}`);
 const OUTPUT_FILE = path.join(VERSION_DIR, "openapi.yaml");
 
 // ---- Metadata ---------------------------------------------------------------
@@ -152,4 +152,3 @@ function main() {
 }
 
 main();
-

@@ -66,10 +66,17 @@ Typical local build:
 
 ```bash
 npm install
-npx antora antora-playbook.yml
+npm run build:site
 ```
 
 Generated site output is written to `public/`.
+
+## OpenAPI and API Reference
+
+- OpenAPI sources are stored under `openapi/ocpi-x.y.z`
+- Versioned Redoc pages are generated under `public/api/<version>/`
+- `/api/` redirects to the latest API version
+- Full version listing is available at `/api/versions/`
 
 ## Deployment
 

@@ -313,6 +313,7 @@ function writeVersionHomePage(pagesDir, version) {
 This documentation page is generated from the OCPI \`${version}\` release branch.${notice}
 
 See xref:spec/introduction.adoc[Introduction] to start reading the specification.
+API Reference for this version: link:/api/${version}/[API Reference (OCPI ${version})].
 ${about}
 `
   )

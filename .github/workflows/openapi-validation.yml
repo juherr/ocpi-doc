@@ -3,14 +3,14 @@ name: OpenAPI Validation
 on:
   push:
     paths:
-      - 'openapi-2.3.0/**'
+      - 'openapi/**'
       - '.spectral.yaml'
       - 'redocly.yaml'
       - 'scripts/check_openapi.sh'
       - '.github/workflows/openapi-validation.yml'
   pull_request:
     paths:
-      - 'openapi-2.3.0/**'
+      - 'openapi/**'
       - '.spectral.yaml'
       - 'redocly.yaml'
       - 'scripts/check_openapi.sh'

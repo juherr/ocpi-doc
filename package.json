@@ -14,7 +14,9 @@
   },
   "scripts": {
     "generate:antora": "node tools/generate-antora-components.js",
-    "build:site": "npm run generate:antora && npx antora antora-playbook.yml",
+    "build:antora": "npm run generate:antora && npx antora antora-playbook.yml",
+    "build:redoc": "node tools/build-redoc.js",
+    "build:site": "npm run build:antora && npm run build:redoc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

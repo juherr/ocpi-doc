@@ -9,6 +9,12 @@ const IGNORE_ASCIIDOC = new Set(['pdf_layout.asciidoc'])
 const DEPRECATED_VERSIONS = {
   '2.2.0': '2.2.1',
 }
+const UPSTREAM_BRANCHES = {
+  '2.3.0': 'release-2.3.0-bugfixes',
+  '2.2.1': 'release-2.2.1-bugfixes',
+  '2.2.0': 'release-2.2-bugfixes',
+  '2.1.1': 'release-2.1.1-bugfixes',
+}
 
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true })
@@ -94,6 +100,15 @@ function titleFromFilename(fileName) {
     .join(' ')
 }
 
+function getUpstreamEditUrl(version, fileName) {
+  const branch = UPSTREAM_BRANCHES[version]
+  if (!branch) {
+    return null
+  }
+
+  return `https://github.com/ocpi/ocpi/blob/${branch}/${fileName}`
+}
+
 function writeFile(filePath, content) {
   ensureDir(path.dirname(filePath))
   fs.writeFileSync(filePath, content, 'utf8')
@@ -169,11 +184,13 @@ function generateComponentPages(componentDir, version, asciidocFiles) {
     const wrapperPath = path.join(specPagesDir, wrapperName)
     const partialName = toAdocName(fileName)
     const title = titleFromFilename(fileName)
+    const editUrl = getUpstreamEditUrl(version, fileName)
+    const editHeader = editUrl ? `:page-editable: true\n:page-edit-url: ${editUrl}` : ':page-editable: false'
 
     writeFile(
       wrapperPath,
       `= ${title}
-:page-editable: false
+${editHeader}
 
 include::partial$src/${partialName}[]
 `

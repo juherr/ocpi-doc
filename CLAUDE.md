@@ -16,13 +16,18 @@ Primary objectives:
 - Generate a multi-version Antora site publishable to GitHub Pages.
 - Target public domain: `ocpi.fyi`.
 
-## Antora + Redoc Integration Notes
+Maintenance reminder:
+- Keep `AGENTS.md` and `README.md` updated whenever behavior, build commands, navigation, or project workflows change.
+
+## Antora + API Explorer Integration Notes
 
 - OpenAPI source directories are versioned under `openapi/ocpi-x.y.z`.
 - `npm run build:redoc` generates one Redoc page per version in `public/api/<version>/index.html`.
+- `npm run build:swagger` generates one Swagger UI page per version in `public/api/<version>/swagger/index.html`.
 - `/api/` must point to the latest version (generated as a redirect page).
 - The public website is English-only; navigation labels and generated UI text must stay in English.
 - Each generated Redoc page should expose a visible `Back to specification` link pointing to `/ocpi/<version>/index.html`.
+- Each generated Swagger UI page should expose a visible `Back to specification` link pointing to `/ocpi/<version>/index.html`.
 - When customizing the Antora navbar, keep the full default `<header class="header">...` structure in `antora/supplemental-ui/partials/header-content.hbs`.
 - For a working hover dropdown in the default UI, keep the dropdown trigger `href="#"` and place real links inside `.navbar-dropdown`.
 

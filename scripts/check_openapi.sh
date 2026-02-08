@@ -43,7 +43,7 @@ for version_dir in "${version_dirs[@]}"; do
   done
 
   for file in "${module_files[@]}"; do
-    echo "=== openapi-generator validate ${file} ==="
-    openapi-generator validate -i "${file}"
+    echo "=== openapi-generator-cli validate ${file} ==="
+    openapi-generator-cli validate -i "${file}"
   done
 done

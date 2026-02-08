@@ -21,7 +21,6 @@ Primary objectives:
 - OpenAPI source directories are versioned under `openapi/ocpi-x.y.z`.
 - `npm run build:redoc` generates one Redoc page per version in `public/api/<version>/index.html`.
 - `/api/` must point to the latest version (generated as a redirect page).
-- The full API version list is published at `/api/versions/`.
 - When customizing the Antora navbar, keep the full default `<header class="header">...` structure in `antora/supplemental-ui/partials/header-content.hbs`.
 - For a working hover dropdown in the default UI, keep the dropdown trigger `href="#"` and place real links inside `.navbar-dropdown`.
 

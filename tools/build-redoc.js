@@ -59,31 +59,6 @@ function generateApiIndexHtml(versions) {
 </head>
 <body>
   <p>Redirecting to latest API version: <a href="./${latest.version}/">OCPI ${latest.version}</a></p>
-  <p>Need all versions? <a href="./versions/">View API versions</a></p>
-</body>
-</html>
-`;
-}
-
-function generateApiVersionsHtml(versions) {
-  const latest = versions[0];
-  const versionItems = versions
-    .map(({ version }) => `<li><a href="../${version}/">OCPI ${version}</a></li>`)
-    .join("\n    ");
-
-  return `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>API Reference</title>
-</head>
-<body>
-  <h1>API Reference</h1>
-  <p><a href="../${latest.version}/">Latest version: OCPI ${latest.version}</a></p>
-  <ul>
-    ${versionItems}
-  </ul>
 </body>
 </html>
 `;
@@ -97,6 +72,9 @@ function main() {
     process.exit(1);
   }
 
+  if (fs.existsSync(PUBLIC_API_DIR)) {
+    fs.rmSync(PUBLIC_API_DIR, { recursive: true, force: true });
+  }
   ensureDir(PUBLIC_API_DIR);
 
   for (const { version, rootSpec } of versions) {
@@ -113,7 +91,6 @@ function main() {
   }
 
   writeFile(path.join(PUBLIC_API_DIR, "index.html"), generateApiIndexHtml(versions));
-  writeFile(path.join(PUBLIC_API_DIR, "versions", "index.html"), generateApiVersionsHtml(versions));
   console.log("Built API index: public/api/index.html");
 }
 

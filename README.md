@@ -76,7 +76,6 @@ Generated site output is written to `public/`.
 - OpenAPI sources are stored under `openapi/ocpi-x.y.z`
 - Versioned Redoc pages are generated under `public/api/<version>/`
 - `/api/` redirects to the latest API version
-- Full version listing is available at `/api/versions/`
 
 ## Deployment
 

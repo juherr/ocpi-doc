@@ -84,3 +84,10 @@ Generated site output is written to `public/`.
 - Keep subtree imports additive and traceable.
 - Do not rewrite imported subtree history.
 - Use OCPI release branch names directly (for example, `release-2.3.0-bugfixes`).
+
+## Maintainer
+
+- Maintained by Julien Herr
+- Website: https://juherr.dev/
+- Contact: ocpi@juherr.dev
+- Source code: https://github.com/juherr/ocpi-doc

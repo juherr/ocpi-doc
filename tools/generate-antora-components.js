@@ -140,8 +140,21 @@ function deprecatedNotice(version) {
   return `\n[IMPORTANT]\n====\nThis version is deprecated. Use OCPI ${replacementVersion} instead.\n====\n`
 }
 
+function aboutBlock() {
+  return `
+== About
+
+This site is maintained by Julien Herr.
+
+* Website: https://juherr.dev/
+* Contact: mailto:ocpi@juherr.dev[ocpi@juherr.dev]
+* Source code: https://github.com/juherr/ocpi-doc
+`
+}
+
 function writeVersionHomePage(pagesDir, version) {
   const notice = deprecatedNotice(version)
+  const about = aboutBlock()
   writeFile(
     path.join(pagesDir, 'index.adoc'),
     `= OCPI ${version}
@@ -149,12 +162,14 @@ function writeVersionHomePage(pagesDir, version) {
 This documentation page is generated from the OCPI \`${version}\` release branch.${notice}
 
 See xref:spec/introduction.adoc[Introduction] to start reading the specification.
+${about}
 `
   )
 }
 
 function writeFallbackHomePage(pagesDir, version) {
   const notice = deprecatedNotice(version)
+  const about = aboutBlock()
   writeFile(
     path.join(pagesDir, 'index.adoc'),
     `= OCPI ${version}
@@ -162,6 +177,7 @@ function writeFallbackHomePage(pagesDir, version) {
 This version is imported from upstream, but its source files are not in AsciiDoc format.${notice}
 
 For now, this version is available as source-only under \`specifications/ocpi-${version}\`.
+${about}
 `
   )
 }

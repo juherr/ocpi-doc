@@ -1,0 +1,38 @@
+.jh-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+  padding: 1rem 0 1.25rem;
+}
+
+.jh-footer .jh-footer-content {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: inherit;
+  text-align: center;
+}
+
+.jh-footer .jh-separator {
+  margin: 0 0.35rem;
+  opacity: 0.55;
+}
+
+.jh-footer a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.12em;
+}
+
+@media (max-width: 700px) {
+  .jh-footer .jh-footer-content {
+    font-size: 0.9rem;
+  }
+
+  .jh-footer .jh-separator {
+    display: none;
+  }
+
+  .jh-footer .jh-item {
+    display: block;
+    margin: 0.15rem 0;
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "country_code": "DE",
+  "party_id": "ALL",
+  "id": "20",
+  "currency": "EUR",
+  "min_price": {
+    "before_taxes": 0.50,
+    "after_taxes": 0.55
+  },
+  "elements": [{
+    "price_components": [{
+      "type": "ENERGY",
+      "price": 0.25,
+      "vat": 10.0,
+      "step_size": 1
+    }]
+  }],
+  "tax_included": "NO",
+  "last_updated": "2018-12-17T16:45:21Z"
+}

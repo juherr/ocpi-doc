@@ -1,0 +1,18 @@
+{
+  "kwh": 15.00,
+  "charging_periods": [{
+    "start_date_time": "2019-06-23T08:16:02Z",
+    "dimensions": [{
+      "type": "ENERGY",
+      "volume": 2200
+    }]
+  }],
+  "total_cost": {
+    "before_taxes": 0.80,
+    "taxes": [{
+      "name": "VAT",
+      "amount": 0.08
+    }]
+  },
+  "last_updated": "2019-06-23T08:16:02Z"
+}

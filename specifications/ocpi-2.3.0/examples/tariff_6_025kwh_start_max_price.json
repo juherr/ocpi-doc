@@ -1,0 +1,26 @@
+{
+  "country_code": "DE",
+  "party_id": "ALL",
+  "id": "16",
+  "currency": "EUR",
+  "max_price": {
+    "before_taxes": 10.00,
+    "after_taxes": 11.00
+  },
+  "elements": [{
+    "price_components": [{
+      "type": "FLAT",
+      "price": 0.50,
+      "vat": 20.0,
+      "step_size": 1
+    }, {
+      "type": "ENERGY",
+      "price": 0.25,
+      "vat": 10.0,
+      "step_size": 1
+    }]
+  }],
+  "tax_included": "NO",
+  "end_date_time": "2019-06-30T23:59:59Z",
+  "last_updated": "2018-12-17T17:15:01Z"
+}

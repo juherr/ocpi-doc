@@ -46,6 +46,67 @@ function buildRedoc(version, inputSpecPath, outputHtmlPath) {
   console.log(`Built Redoc page: public/api/${version}/index.html`);
 }
 
+function injectBackToSpecLink(version, outputHtmlPath) {
+  if (!fs.existsSync(outputHtmlPath)) {
+    return;
+  }
+
+  const html = fs.readFileSync(outputHtmlPath, "utf8");
+  const href = `/ocpi/${version}/index.html`;
+  const marker = 'id="ocpi-back-to-spec"';
+
+  if (html.includes(marker)) {
+    return;
+  }
+
+  const backLink = `
+<style>
+  .ocpi-back-to-spec {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 2147483647;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid #0f172a;
+    background: #0f172a;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .ocpi-back-to-spec:hover,
+  .ocpi-back-to-spec:focus {
+    background: #1e293b;
+    border-color: #1e293b;
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  @media (max-width: 768px) {
+    .ocpi-back-to-spec {
+      top: 8px;
+      right: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+  }
+</style>
+<a id="ocpi-back-to-spec" class="ocpi-back-to-spec" href="${href}">Back to specification</a>
+`;
+
+  if (html.includes("</body>")) {
+    fs.writeFileSync(outputHtmlPath, html.replace("</body>", `${backLink}\n</body>`), "utf8");
+    return;
+  }
+
+  fs.writeFileSync(outputHtmlPath, `${html}${backLink}`, "utf8");
+}
+
 function generateApiIndexHtml(versions) {
   const latest = versions[0];
   return `<!doctype html>
@@ -88,6 +149,7 @@ function main() {
     ensureDir(outVersionDir);
 
     buildRedoc(version, rootSpec, outHtmlPath);
+    injectBackToSpecLink(version, outHtmlPath);
   }
 
   writeFile(path.join(PUBLIC_API_DIR, "index.html"), generateApiIndexHtml(versions));

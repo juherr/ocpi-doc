@@ -353,12 +353,12 @@ function generateComponentPages(componentDir, version, asciidocFiles) {
     const partialName = toAdocName(fileName)
     const title = titleFromFilename(fileName)
     const editUrl = getUpstreamEditUrl(version, fileName)
-    const editHeader = editUrl ? `:page-editable: true\n:page-edit-url: ${editUrl}` : ':page-editable: false'
+    const editHeader = editUrl ? `:page-upstream-edit-url: ${editUrl}` : ''
 
     writeFile(
       wrapperPath,
       `= ${title}
-${editHeader}
+${editHeader ? `${editHeader}\n` : ''}
 
 include::partial$src/${partialName}[]
 `

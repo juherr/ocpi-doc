@@ -26,6 +26,12 @@ Maintenance reminder:
 - `npm run build:swagger` generates one Swagger UI page per version in `public/api/<version>/swagger/index.html`.
 - `/api/` must point to the latest version (generated as a redirect page).
 - The public website is English-only; navigation labels and generated UI text must stay in English.
+- Antora version navigation includes `Home`, `Spec`, `Library`, and `About`.
+- Library entries are version-specific.
+- Active projects are grouped by technology.
+- Inactive projects are listed in an `Inactive Libraries` section with a `Language` column.
+- Planned/Partial support is displayed as a warning inside the `Notes` column.
+- Do not display last push dates on public pages.
 - Each generated Redoc page should expose a visible `Back to specification` link pointing to `/ocpi/<version>/index.html`.
 - Each generated Swagger UI page should expose a visible `Back to specification` link pointing to `/ocpi/<version>/index.html`.
 - When customizing the Antora navbar, keep the full default `<header class="header">...` structure in `antora/supplemental-ui/partials/header-content.hbs`.

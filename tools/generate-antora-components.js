@@ -22,6 +22,222 @@ const UPSTREAM_BRANCHES = {
   '2.2.0': 'release-2.2-bugfixes',
   '2.1.1': 'release-2.1.1-bugfixes',
 }
+const LIBRARIES_BY_VERSION = {
+  '2.2.1': [
+    {
+      technology: 'C#',
+      name: 'BitzArt/OCPI.Net',
+      url: 'https://github.com/BitzArt/OCPI.Net',
+      versionStatus: 'Supported',
+      activity: 'Active',
+      notes: '.NET implementation of OCPI with public documentation and package distribution.',
+    },
+    {
+      technology: 'Java',
+      name: 'Llocer/llocer_ocpi',
+      url: 'https://github.com/Llocer/llocer_ocpi',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'Open source library for implementing OCPI 2.2.1 nodes.',
+    },
+    {
+      technology: 'Java',
+      name: 'extrawest/Extrawest-OCPI-2.2.1',
+      url: 'https://github.com/extrawest/Extrawest-OCPI-2.2.1',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'Core Java package with shared OCPI 2.2.1 components used by Extrawest client and server libraries.',
+    },
+    {
+      technology: 'Java',
+      name: 'extrawest/Extrawest-OCPI-2.2.1-CPO-Client',
+      url: 'https://github.com/extrawest/Extrawest-OCPI-2.2.1-CPO-Client',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'Java client library for CPO systems that call OCPI 2.2.1 endpoints.',
+    },
+    {
+      technology: 'Java',
+      name: 'extrawest/Extrawest-OCPI-2.2.1-CPO-Server',
+      url: 'https://github.com/extrawest/Extrawest-OCPI-2.2.1-CPO-Server',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'Java server library for building OCPI 2.2.1 CPO applications.',
+    },
+    {
+      technology: 'Java',
+      name: 'extrawest/Extrawest-OCPI-2.2.1-EMSP-Client',
+      url: 'https://github.com/extrawest/Extrawest-OCPI-2.2.1-EMSP-Client',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'Java client library for eMSP systems that call OCPI 2.2.1 endpoints.',
+    },
+    {
+      technology: 'Java',
+      name: 'extrawest/Extrawest-OCPI-2.2.1-EMSP-Server',
+      url: 'https://github.com/extrawest/Extrawest-OCPI-2.2.1-EMSP-Server',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'Java server library for building OCPI 2.2.1 eMSP applications.',
+    },
+    {
+      technology: 'Go',
+      name: 'ChargePi/ocpi-sdk-go',
+      url: 'https://github.com/ChargePi/ocpi-sdk-go',
+      versionStatus: 'Supported',
+      activity: 'Active',
+      notes: 'Generated OCPI 2.2.1 Go client and server SDK based on OpenAPI.',
+    },
+    {
+      technology: 'Kotlin',
+      name: 'IZIVIA/ocpi-toolkit',
+      url: 'https://github.com/IZIVIA/ocpi-toolkit',
+      versionStatus: 'Supported',
+      activity: 'Active',
+      notes: 'Reference Kotlin toolkit for OCPI 2.2.1 business logic and validation.',
+    },
+    {
+      technology: 'Python',
+      name: 'extrawest/extrawest_ocpi',
+      url: 'https://github.com/extrawest/extrawest_ocpi',
+      versionStatus: 'Supported',
+      activity: 'Active',
+      notes: 'FastAPI-based Python implementation of OCPI with package and hosted documentation.',
+    },
+    {
+      technology: 'Python',
+      name: 'TECHS-Technological-Solutions/ocpi',
+      url: 'https://github.com/TECHS-Technological-Solutions/ocpi',
+      versionStatus: 'Supported',
+      activity: 'Active',
+      notes: 'Python OCPI library published as py-ocpi with examples and hosted documentation.',
+    },
+    {
+      technology: 'TypeScript',
+      name: 'solidstudiosh/ocpi-schema',
+      url: 'https://github.com/solidstudiosh/ocpi-schema',
+      versionStatus: 'Supported',
+      activity: 'Active',
+      notes: 'JSON Schema generator for OCPI 2.1.1, 2.2, and 2.2.1.',
+    },
+  ],
+  '2.2.0': [
+    {
+      technology: 'C#',
+      name: 'BitzArt/OCPI.Net',
+      url: 'https://github.com/BitzArt/OCPI.Net',
+      versionStatus: 'Partial',
+      activity: 'Active',
+      notes: '.NET implementation of OCPI with public documentation and package distribution.',
+    },
+    {
+      technology: 'Python',
+      name: 'NOWUM/pyOCPI',
+      url: 'https://github.com/NOWUM/pyOCPI',
+      versionStatus: 'Supported',
+      activity: 'Active',
+      notes: 'Flask-RESTX OCPI 2.2 interface with generated OpenAPI support.',
+    },
+    {
+      technology: 'TypeScript',
+      name: 'andreibesleaga/ocpi-sdk',
+      url: 'https://github.com/andreibesleaga/ocpi-sdk',
+      versionStatus: 'Supported',
+      activity: 'Active',
+      notes: 'TypeScript and JavaScript SDK for OCPI v2.2 endpoints with MCP server package.',
+    },
+    {
+      technology: 'TypeScript',
+      name: 'solidstudiosh/ocpi-schema',
+      url: 'https://github.com/solidstudiosh/ocpi-schema',
+      versionStatus: 'Supported',
+      activity: 'Active',
+      notes: 'JSON Schema generator for OCPI 2.1.1, 2.2, and 2.2.1.',
+    },
+  ],
+  '2.1.1': [
+    {
+      technology: 'C#',
+      name: 'kraftvaerk/OCPI',
+      url: 'https://github.com/kraftvaerk/OCPI',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'Reference OCPI implementation in C# focused on DTOs and interfaces.',
+    },
+    {
+      technology: 'C#',
+      name: 'BitzArt/OCPI.Net',
+      url: 'https://github.com/BitzArt/OCPI.Net',
+      versionStatus: 'Planned',
+      activity: 'Active',
+      notes: '.NET implementation of OCPI with public documentation and package distribution.',
+    },
+    {
+      technology: 'Go',
+      name: 'evorada/ocpi-types',
+      url: 'https://github.com/evorada/ocpi-types',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'Auto-generated OCPI 2.1.1 type definitions for Go.',
+    },
+    {
+      technology: 'Python',
+      name: 'evorada/ocpi-types',
+      url: 'https://github.com/evorada/ocpi-types',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'Auto-generated OCPI 2.1.1 type definitions for Python.',
+    },
+    {
+      technology: 'Rust',
+      name: 'evorada/ocpi-types',
+      url: 'https://github.com/evorada/ocpi-types',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'Auto-generated OCPI 2.1.1 type definitions for Rust.',
+    },
+    {
+      technology: 'TypeScript',
+      name: 'evorada/ocpi-types',
+      url: 'https://github.com/evorada/ocpi-types',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'Auto-generated OCPI 2.1.1 schemas and type definitions for TypeScript.',
+    },
+    {
+      technology: 'Python',
+      name: 'extrawest/extrawest_ocpi',
+      url: 'https://github.com/extrawest/extrawest_ocpi',
+      versionStatus: 'Supported',
+      activity: 'Active',
+      notes: 'FastAPI-based Python implementation of OCPI with package and hosted documentation.',
+    },
+    {
+      technology: 'PHP',
+      name: 'ChargeMap/ocpi-protocol',
+      url: 'https://github.com/ChargeMap/ocpi-protocol',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'PSR-compatible OCPI library with request and response models for eMSP interfaces.',
+    },
+    {
+      technology: 'Scala',
+      name: 'ShellRechargeSolutionsEU/ocpi-endpoints',
+      url: 'https://github.com/ShellRechargeSolutionsEU/ocpi-endpoints',
+      versionStatus: 'Supported',
+      activity: 'Inactive',
+      notes: 'Scala implementation of common OCPI endpoints with client and server components.',
+    },
+    {
+      technology: 'TypeScript',
+      name: 'solidstudiosh/ocpi-schema',
+      url: 'https://github.com/solidstudiosh/ocpi-schema',
+      versionStatus: 'Supported',
+      activity: 'Active',
+      notes: 'JSON Schema generator for OCPI 2.1.1, 2.2, and 2.2.1.',
+    },
+  ],
+}
 
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true })
@@ -306,6 +522,108 @@ function writeAboutPage(pagesDir) {
   writeFile(path.join(pagesDir, 'about.adoc'), `${aboutPageContent()}\n`)
 }
 
+function compareLibraries(a, b) {
+  const tech = a.technology.localeCompare(b.technology)
+  if (tech !== 0) {
+    return tech
+  }
+  return a.name.localeCompare(b.name)
+}
+
+function libraryNotes(library, version) {
+  if (library.versionStatus === 'Planned') {
+    return `pass:[<span class="library-warning library-warning--planned">🔴 Planned support for OCPI ${version}.</span>] ${library.notes}`
+  }
+  if (library.versionStatus === 'Partial') {
+    return `pass:[<span class="library-warning library-warning--partial">🟠 Partial support for OCPI ${version}.</span>] ${library.notes}`
+  }
+  return library.notes
+}
+
+function libraryPageContent(version) {
+  const libraries = (LIBRARIES_BY_VERSION[version] || []).slice()
+  const activeLibraries = libraries.filter((library) => library.activity === 'Active').sort(compareLibraries)
+  const inactiveLibraries = libraries.filter((library) => library.activity !== 'Active').sort(compareLibraries)
+
+  if (!libraries.length) {
+    return `= Library
+
+Community OCPI libraries and SDKs, grouped by technology.
+
+[NOTE]
+====
+This list is informational and not an endorsement.
+Project discovery is based on https://github.com/juherr/awesome-ev-charging[juherr/awesome-ev-charging].
+====
+
+No libraries are listed for OCPI ${version} yet.
+`
+  }
+
+  const lines = [
+    '= Library',
+    '',
+    'Community OCPI libraries and SDKs, grouped by technology.',
+    '',
+    '[NOTE]',
+    '====',
+    'This list is informational and not an endorsement.',
+    'Project discovery is based on https://github.com/juherr/awesome-ev-charging[juherr/awesome-ev-charging].',
+    '====',
+    '',
+  ]
+
+  let currentTechnology = ''
+  for (const library of activeLibraries) {
+    if (library.technology !== currentTechnology) {
+      if (currentTechnology) {
+        lines.push('|===')
+        lines.push('')
+      }
+      currentTechnology = library.technology
+      lines.push(`== ${currentTechnology}`)
+      lines.push('')
+      lines.push('[cols="1,3", options="header"]')
+      lines.push('|===')
+      lines.push('| Project | Notes')
+    }
+
+    lines.push(`| ${library.url}[${library.name}]`)
+    lines.push(`| ${libraryNotes(library, version)}`)
+  }
+
+  if (currentTechnology) {
+    lines.push('|===')
+  }
+
+  if (inactiveLibraries.length) {
+    if (lines[lines.length - 1] !== '') {
+      lines.push('')
+    }
+    lines.push('== Inactive Libraries')
+    lines.push('')
+    lines.push('Libraries with no public repository activity in the last 12 months. These projects can still be useful for reference, migrations, or legacy integrations.')
+    lines.push('')
+    lines.push('[cols="1,1,2", options="header"]')
+    lines.push('|===')
+    lines.push('| Project | Language | Notes')
+
+    for (const library of inactiveLibraries) {
+      lines.push(`| ${library.url}[${library.name}]`)
+      lines.push(`| ${library.technology}`)
+      lines.push(`| ${libraryNotes(library, version)}`)
+    }
+
+    lines.push('|===')
+  }
+
+  return `${lines.join('\n')}\n`
+}
+
+function writeLibraryPage(pagesDir, version) {
+  writeFile(path.join(pagesDir, 'library.adoc'), libraryPageContent(version))
+}
+
 function writeVersionHomePage(pagesDir, version) {
   const notice = deprecatedNotice(version)
   writeFile(
@@ -343,6 +661,7 @@ function generateComponentPages(componentDir, version, asciidocFiles) {
   ensureDir(partialsSourceDir)
 
   writeVersionHomePage(pagesDir, version)
+  writeLibraryPage(pagesDir, version)
   writeAboutPage(pagesDir)
 
   const navLines = ['* xref:index.adoc[Home]', '* Spec']
@@ -367,6 +686,7 @@ include::partial$src/${partialName}[]
     navLines.push(`** xref:spec/${wrapperName}[${title}]`)
   }
 
+  navLines.push('* xref:library.adoc[Library]')
   navLines.push('* xref:about.adoc[About]')
 
   writeFile(path.join(moduleRoot, 'nav.adoc'), `${navLines.join('\n')}\n`)
@@ -379,9 +699,10 @@ function generateFallbackComponent(componentDir, version) {
   ensureDir(pagesDir)
 
   writeFallbackHomePage(pagesDir, version)
+  writeLibraryPage(pagesDir, version)
   writeAboutPage(pagesDir)
 
-  writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n* xref:about.adoc[About]\n')
+  writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n* xref:library.adoc[Library]\n* xref:about.adoc[About]\n')
 }
 
 function syncVersion(versionInfo) {

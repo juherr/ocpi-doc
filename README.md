@@ -54,6 +54,7 @@ Each version folder is treated as a versioned Antora content source.
 ## Antora (multi-version)
 
 The Antora playbook references all version folders and renders one site with version navigation.
+Each version includes `Home`, `Spec`, `Library`, and `About` pages.
 
 ### Version status
 
@@ -70,6 +71,15 @@ npm run build:site
 ```
 
 Generated site output is written to `public/`.
+
+### Library section maintenance
+
+- Library pages are generated per OCPI version.
+- Active projects are grouped by technology.
+- Inactive projects are listed in a dedicated `Inactive Libraries` section with a `Language` column.
+- Planned/Partial support is shown as a warning in the `Notes` column.
+- Last push dates are not displayed on public pages.
+- Update workflow reference: `ai/PLAN-library-catalog-workflow.md`.
 
 ## OpenAPI and API Reference
 

@@ -49,6 +49,10 @@ function toJsonPointerKey(key) {
   return key.replace(/~/g, "~0").replace(/\//g, "~1");
 }
 
+function toKebabCase(str) {
+  return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+}
+
 function isYamlFile(fileName) {
   return fileName.endsWith(".yaml") || fileName.endsWith(".yml");
 }
@@ -104,31 +108,69 @@ function main() {
   const root = {
     openapi: "3.1.0",
     info: ROOT_INFO,
+    security: [{ TokenAuth: [] }],
     paths: {},
+    webhooks: {},
+    components: {
+      securitySchemes: {
+        TokenAuth: {
+          type: "apiKey",
+          in: "header",
+          name: "Authorization",
+          description:
+            "OCPI credentials token passed in the Authorization header.",
+        },
+      },
+    },
     // servers: SERVERS,
   };
 
   const collisions = [];
   let totalPaths = 0;
 
+  let totalWebhooks = 0;
+
   for (const filePath of specFiles) {
     const doc = readYaml(filePath);
-
-    if (!doc?.paths) continue;
-
     const fileName = path.basename(filePath);
-    for (const p of Object.keys(doc.paths)) {
-      totalPaths++;
 
-      if (root.paths[p]) {
-        collisions.push({ path: p, from: fileName });
-        continue; // keep first occurrence
+    if (doc?.paths) {
+      for (const p of Object.keys(doc.paths)) {
+        totalPaths++;
+
+        if (root.paths[p]) {
+          collisions.push({ path: p, from: fileName });
+          continue; // keep first occurrence
+        }
+
+        root.paths[p] = {
+          $ref: `./${fileName}#/paths/${toJsonPointerKey(p)}`,
+        };
       }
-
-      root.paths[p] = {
-        $ref: `./${fileName}#/paths/${toJsonPointerKey(p)}`,
-      };
     }
+
+    if (doc?.webhooks) {
+      for (const name of Object.keys(doc.webhooks)) {
+        totalWebhooks++;
+        const key = toKebabCase(name);
+
+        if (root.webhooks[key]) {
+          collisions.push({ webhook: key, from: fileName });
+          continue;
+        }
+
+        root.webhooks[key] = {
+          $ref: `./${fileName}#/webhooks/${toJsonPointerKey(name)}`,
+        };
+      }
+    }
+  }
+
+  const webhookCount = Object.keys(root.webhooks).length;
+
+  // Remove webhooks key if empty to keep output clean
+  if (webhookCount === 0) {
+    delete root.webhooks;
   }
 
   fs.writeFileSync(OUTPUT_FILE, yaml.stringify(root), "utf8");
@@ -138,12 +180,15 @@ function main() {
   console.log(`  Module specs: ${specFiles.length}`);
   console.log(`  Paths found: ${totalPaths}`);
   console.log(`  Paths exported: ${Object.keys(root.paths).length}`);
+  console.log(`  Webhooks found: ${totalWebhooks}`);
+  console.log(`  Webhooks exported: ${webhookCount}`);
 
   if (collisions.length) {
-    console.warn(`⚠ Path collisions detected (${collisions.length})`);
-    collisions.slice(0, 10).forEach((c) =>
-      console.warn(`  - ${c.path} (duplicate in ${c.from})`)
-    );
+    console.warn(`⚠ Collisions detected (${collisions.length})`);
+    collisions.slice(0, 10).forEach((c) => {
+      const key = c.path ? `path: ${c.path}` : `webhook: ${c.webhook}`;
+      console.warn(`  - ${key} (duplicate in ${c.from})`);
+    });
   }
 
   console.log("\nNext steps:");

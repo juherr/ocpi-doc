@@ -11,6 +11,18 @@ components:
   headers:
     # ---- Response Headers ----
 
+    X-Request-ID:
+      description: Echoed from the request. Same unique request ID.
+      schema:
+        type: string
+        format: uuid
+
+    X-Correlation-ID:
+      description: Echoed from the request. Same correlation ID.
+      schema:
+        type: string
+        format: uuid
+
     X-Total-Count:
       description: >-
         The total number of objects available in the server system that match the given query
@@ -38,18 +50,6 @@ components:
 
   parameters:
     # ---- Request Headers ----
-
-    Authorization:
-      name: Authorization
-      in: header
-      required: true
-      description: >-
-        OCPI credentials token for authentication.
-        Format: Token <base64-encoded-credentials-token>
-      schema:
-        type: string
-        pattern: "^Token [A-Za-z0-9+/=]+$"
-      example: "Token ZWJmM2IzOTktNzc5Zi00NDk3LTliOWQtYWM2YWQzY2M0NGQyCg=="
 
     X-Request-ID:
       name: X-Request-ID

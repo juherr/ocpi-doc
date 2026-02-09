@@ -1,114 +1,103 @@
-# OCPI 2.3.0 - Hub Client Info Module
-# Sender (Hub) and Receiver (Party) interfaces for client connection information
 openapi: 3.1.0
 info:
   title: OCPI 2.3.0 - Hub Client Info
-  description: >-
-    The Hub Client Info module provides information about parties connected to a Hub.
-    Data owner is the Hub.
+  description: The Hub Client Info module provides information about parties connected
+    to a Hub. Data owner is the Hub.
   version: 2.3.0
   license:
     name: Creative Commons Attribution-NoDerivatives 4.0 International
     url: https://creativecommons.org/licenses/by-nd/4.0/
-
 externalDocs:
   description: OCPI 2.3.0 Specification
   url: https://github.com/ocpi/ocpi
-
 servers:
-  - url: https://example.com/ocpi/2.3.0
-    description: Example OCPI server
-
+- url: https://example.com/ocpi/2.3.0
+  description: Example OCPI server
 security:
-  - TokenAuth: []
-
+- TokenAuth: []
 paths:
-  # ---- Sender Interface (Hub) ----
-
   /hubclientinfo:
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
     get:
       operationId: getHubClientInfo
       summary: Get Client Info List (Sender)
-      description: >-
-        Fetch ClientInfo objects from the Hub, last updated between date_from and date_to (paginated).
+      description: Fetch ClientInfo objects from the Hub, last updated between date_from
+        and date_to (paginated).
       tags:
-        - HubClientInfo - Sender
+      - HubClientInfo - Sender
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/parameters.yaml#/components/parameters/date_from'
-        - $ref: './shared/parameters.yaml#/components/parameters/date_to'
-        - $ref: './shared/parameters.yaml#/components/parameters/offset'
-        - $ref: './shared/parameters.yaml#/components/parameters/limit'
+      - $ref: ./shared/parameters.yaml#/components/parameters/date_from
+      - $ref: ./shared/parameters.yaml#/components/parameters/date_to
+      - $ref: ./shared/parameters.yaml#/components/parameters/offset
+      - $ref: ./shared/parameters.yaml#/components/parameters/limit
       responses:
         '200':
           description: List of ClientInfo objects.
           headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
             X-Total-Count:
-              $ref: './shared/headers.yaml#/components/headers/X-Total-Count'
+              $ref: ./shared/headers.yaml#/components/headers/X-Total-Count
             X-Limit:
-              $ref: './shared/headers.yaml#/components/headers/X-Limit'
+              $ref: ./shared/headers.yaml#/components/headers/X-Limit
             Link:
-              $ref: './shared/headers.yaml#/components/headers/Link'
+              $ref: ./shared/headers.yaml#/components/headers/Link
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ClientInfo'
+                $ref: '#/components/schemas/ClientInfoListResponse'
         '401':
           description: Unauthorized.
-
-  # ---- Receiver Interface (Party) ----
-
   /hubclientinfo/{country_code}/{party_id}:
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
     get:
       operationId: getReceiverClientInfo
       summary: Get Client Info (Receiver)
       description: Retrieve a ClientInfo object as stored in the Receiver's system.
       tags:
-        - HubClientInfo - Receiver
+      - HubClientInfo - Receiver
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
-        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+      - $ref: ./shared/parameters.yaml#/components/parameters/country_code
+      - $ref: ./shared/parameters.yaml#/components/parameters/party_id
       responses:
         '200':
           description: The requested ClientInfo object.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/ClientInfo'
+                $ref: '#/components/schemas/ClientInfoResponse'
         '401':
           description: Unauthorized.
         '404':
           description: ClientInfo not found.
-
     put:
       operationId: putReceiverClientInfo
       summary: Push Client Info (Receiver)
       description: Push a new or updated ClientInfo object to the Receiver.
       tags:
-        - HubClientInfo - Receiver
+      - HubClientInfo - Receiver
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
-        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
+      - $ref: ./shared/parameters.yaml#/components/parameters/country_code
+      - $ref: ./shared/parameters.yaml#/components/parameters/party_id
       requestBody:
         required: true
         content:
@@ -118,19 +107,28 @@ paths:
       responses:
         '200':
           description: ClientInfo updated.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '201':
           description: ClientInfo created.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '401':
           description: Unauthorized.
-
 components:
   securitySchemes:
     TokenAuth:
@@ -139,15 +137,57 @@ components:
       name: Authorization
       description: OCPI credentials token passed in the Authorization header.
   schemas:
+    ClientInfoResponse:
+      type: object
+      required:
+      - status_code
+      - timestamp
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/ClientInfo'
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    ClientInfoListResponse:
+      type: object
+      required:
+      - status_code
+      - timestamp
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientInfo'
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
     ClientInfo:
       type: object
       description: Information about a party connected to a Hub.
       required:
-        - party_id
-        - country_code
-        - role
-        - status
-        - last_updated
+      - party_id
+      - country_code
+      - role
+      - status
+      - last_updated
       properties:
         party_id:
           type: string
@@ -158,18 +198,17 @@ components:
           maxLength: 2
           description: Country code of the country this party is operating in.
         role:
-          $ref: './shared/common.yaml#/components/schemas/Role'
+          $ref: ./shared/schemas/types.yaml#/components/schemas/Role
         status:
           $ref: '#/components/schemas/ConnectionStatus'
         last_updated:
-          $ref: './shared/common.yaml#/components/schemas/DateTime'
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
       additionalProperties: true
-
     ConnectionStatus:
       type: string
       enum:
-        - CONNECTED
-        - OFFLINE
-        - PLANNED
-        - SUSPENDED
+      - CONNECTED
+      - OFFLINE
+      - PLANNED
+      - SUSPENDED
       description: Status of a party's connection to the Hub.

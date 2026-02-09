@@ -1,139 +1,110 @@
-# OCPI 2.3.0 - Tariffs Module
-# Sender (CPO) and Receiver (eMSP) interfaces for Tariff management
 openapi: 3.1.0
 info:
   title: OCPI 2.3.0 - Tariffs
-  description: >-
-    The Tariffs module provides information about the tariffs used by a CPO.
-    Data owner is typically the CPO.
+  description: The Tariffs module provides information about the tariffs used by a
+    CPO. Data owner is typically the CPO.
   version: 2.3.0
   license:
     name: Creative Commons Attribution-NoDerivatives 4.0 International
     url: https://creativecommons.org/licenses/by-nd/4.0/
-
 externalDocs:
   description: OCPI 2.3.0 Specification
   url: https://github.com/ocpi/ocpi
-
 servers:
-  - url: https://example.com/ocpi/2.3.0
-    description: Example OCPI server
-
+- url: https://example.com/ocpi/2.3.0
+  description: Example OCPI server
 security:
-  - TokenAuth: []
-
+- TokenAuth: []
 paths:
-  # ---- Sender Interface (CPO) ----
-
   /tariffs:
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
     get:
       operationId: getTariffs
       summary: Get Tariffs List (Sender)
-      description: >-
-        Fetch Tariff objects from the CPO, last updated between date_from and date_to (paginated).
+      description: Fetch Tariff objects from the CPO, last updated between date_from
+        and date_to (paginated).
       tags:
-        - Tariffs - Sender
+      - Tariffs - Sender
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - $ref: './shared/parameters.yaml#/components/parameters/date_from'
-        - $ref: './shared/parameters.yaml#/components/parameters/date_to'
-        - $ref: './shared/parameters.yaml#/components/parameters/offset'
-        - $ref: './shared/parameters.yaml#/components/parameters/limit'
+      - $ref: ./shared/parameters.yaml#/components/parameters/date_from
+      - $ref: ./shared/parameters.yaml#/components/parameters/date_to
+      - $ref: ./shared/parameters.yaml#/components/parameters/offset
+      - $ref: ./shared/parameters.yaml#/components/parameters/limit
       responses:
         '200':
           description: List of Tariff objects.
           headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
             X-Total-Count:
-              $ref: './shared/headers.yaml#/components/headers/X-Total-Count'
+              $ref: ./shared/headers.yaml#/components/headers/X-Total-Count
             X-Limit:
-              $ref: './shared/headers.yaml#/components/headers/X-Limit'
+              $ref: ./shared/headers.yaml#/components/headers/X-Limit
             Link:
-              $ref: './shared/headers.yaml#/components/headers/Link'
+              $ref: ./shared/headers.yaml#/components/headers/Link
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Tariff'
+                $ref: '#/components/schemas/TariffListResponse'
         '401':
           description: Unauthorized.
-
-  # ---- Receiver Interface (eMSP) ----
-
   /tariffs/{country_code}/{party_id}/{tariff_id}:
     get:
       operationId: getReceiverTariff
       summary: Get Tariff (Receiver)
-      description: Retrieve a Tariff object as stored in the Receiver's system for validation.
+      description: Retrieve a Tariff object as stored in the Receiver's system for
+        validation.
       tags:
-        - Tariffs - Receiver
+      - Tariffs - Receiver
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
-        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
-        - name: tariff_id
-          in: path
-          required: true
-          description: Tariff.id of the Tariff to retrieve.
-          schema:
-            type: string
-            maxLength: 36
+      - $ref: ./shared/parameters.yaml#/components/parameters/country_code
+      - $ref: ./shared/parameters.yaml#/components/parameters/party_id
+      - name: tariff_id
+        in: path
+        required: true
+        description: Tariff.id of the Tariff to retrieve.
+        schema:
+          type: string
+          maxLength: 36
       responses:
         '200':
           description: The requested Tariff object.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/Tariff'
+                $ref: '#/components/schemas/TariffResponse'
         '401':
           description: Unauthorized.
         '404':
           description: Tariff not found.
-
     put:
       operationId: putReceiverTariff
       summary: Push Tariff (Receiver)
       description: Push a new or updated Tariff object to the Receiver.
       tags:
-        - Tariffs - Receiver
+      - Tariffs - Receiver
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
-        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
-        - name: tariff_id
-          in: path
-          required: true
-          schema:
-            type: string
-            maxLength: 36
+      - $ref: ./shared/parameters.yaml#/components/parameters/country_code
+      - $ref: ./shared/parameters.yaml#/components/parameters/party_id
+      - name: tariff_id
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
       requestBody:
         required: true
         content:
@@ -143,53 +114,66 @@ paths:
       responses:
         '200':
           description: Tariff updated.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '201':
           description: Tariff created.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '401':
           description: Unauthorized.
-
     delete:
       operationId: deleteReceiverTariff
       summary: Delete Tariff (Receiver)
       description: Delete a Tariff object that is no longer in use.
       tags:
-        - Tariffs - Receiver
+      - Tariffs - Receiver
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
-        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
-        - name: tariff_id
-          in: path
-          required: true
-          schema:
-            type: string
-            maxLength: 36
+      - $ref: ./shared/parameters.yaml#/components/parameters/country_code
+      - $ref: ./shared/parameters.yaml#/components/parameters/party_id
+      - name: tariff_id
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
       responses:
         '200':
           description: Tariff deleted.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '401':
           description: Unauthorized.
         '404':
           description: Tariff not found.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
 components:
   securitySchemes:
     TokenAuth:
@@ -198,17 +182,60 @@ components:
       name: Authorization
       description: OCPI credentials token passed in the Authorization header.
   schemas:
+    TariffResponse:
+      type: object
+      required:
+      - status_code
+      - timestamp
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Tariff'
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    TariffListResponse:
+      type: object
+      required:
+      - status_code
+      - timestamp
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tariff'
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
     Tariff:
       type: object
-      description: A Tariff object describes the pricing structure for a charging session.
+      description: A Tariff object describes the pricing structure for a charging
+        session.
       required:
-        - country_code
-        - party_id
-        - id
-        - currency
-        - elements
-        - tax_included
-        - last_updated
+      - country_code
+      - party_id
+      - id
+      - currency
+      - elements
+      - tax_included
+      - last_updated
       properties:
         country_code:
           type: string
@@ -231,20 +258,22 @@ components:
         tariff_alt_text:
           type: array
           items:
-            $ref: './shared/common.yaml#/components/schemas/DisplayText'
+            $ref: ./shared/schemas/types.yaml#/components/schemas/DisplayText
           description: Alternative tariff info text in multiple languages.
         tariff_alt_url:
           type: string
           format: uri
           maxLength: 255
-          description: URL to a web page with tariff information in human readable form.
+          description: URL to a web page with tariff information in human readable
+            form.
         min_price:
           $ref: '#/components/schemas/PriceLimit'
         max_price:
           $ref: '#/components/schemas/PriceLimit'
         preauthorize_amount:
           type: number
-          description: Amount that a Payment Terminal Provider should preauthorize for card payment.
+          description: Amount that a Payment Terminal Provider should preauthorize
+            for card payment.
         elements:
           type: array
           minItems: 1
@@ -254,20 +283,19 @@ components:
         tax_included:
           $ref: '#/components/schemas/TaxIncluded'
         start_date_time:
-          $ref: './shared/common.yaml#/components/schemas/DateTime'
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
         end_date_time:
-          $ref: './shared/common.yaml#/components/schemas/DateTime'
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
         energy_mix:
-          $ref: './shared/common.yaml#/components/schemas/EnergyMix'
+          $ref: ./shared/schemas/locations.yaml#/components/schemas/EnergyMix
         last_updated:
-          $ref: './shared/common.yaml#/components/schemas/DateTime'
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
       additionalProperties: true
-
     TariffElement:
       type: object
       description: A Tariff Element consists of Price Components and optional Restrictions.
       required:
-        - price_components
+      - price_components
       properties:
         price_components:
           type: array
@@ -278,35 +306,35 @@ components:
         restrictions:
           $ref: '#/components/schemas/TariffRestrictions'
       additionalProperties: true
-
     PriceComponent:
       type: object
-      description: Describes how a specific dimension (energy, time, flat, parking) is priced.
+      description: Describes how a specific dimension (energy, time, flat, parking)
+        is priced.
       required:
-        - type
-        - price
-        - step_size
+      - type
+      - price
+      - step_size
       properties:
         type:
           $ref: '#/components/schemas/TariffDimensionType'
         price:
           type: number
-          description: Price per unit (including or excluding taxes per tax_included field).
+          description: Price per unit (including or excluding taxes per tax_included
+            field).
         vat:
           type: number
           description: Applicable VAT percentage. If omitted, no VAT is applicable.
         step_size:
           type: integer
-          description: >-
-            Minimum amount to be billed. Consumed amounts are rounded up to the
-            smallest multiple of step_size that is at least equal to the consumed amount.
+          description: Minimum amount to be billed. Consumed amounts are rounded up
+            to the smallest multiple of step_size that is at least equal to the consumed
+            amount.
       additionalProperties: true
-
     PriceLimit:
       type: object
       description: Minimum or maximum price limit for a charging session.
       required:
-        - before_taxes
+      - before_taxes
       properties:
         before_taxes:
           type: number
@@ -315,7 +343,6 @@ components:
           type: number
           description: Maximum or minimum cost including taxes.
       additionalProperties: true
-
     TariffRestrictions:
       type: object
       description: Restrictions that describe when a Tariff Element applies.
@@ -323,22 +350,22 @@ components:
         start_time:
           type: string
           maxLength: 5
-          pattern: "^[0-2][0-9]:[0-5][0-9]$"
+          pattern: ^[0-2][0-9]:[0-5][0-9]$
           description: Start time of day in local time (HH:MM).
         end_time:
           type: string
           maxLength: 5
-          pattern: "^[0-2][0-9]:[0-5][0-9]$"
+          pattern: ^[0-2][0-9]:[0-5][0-9]$
           description: End time of day in local time (HH:MM).
         start_date:
           type: string
           maxLength: 10
-          pattern: "^\\d{4}-\\d{2}-\\d{2}$"
+          pattern: ^\d{4}-\d{2}-\d{2}$
           description: Start date in local time (YYYY-MM-DD), inclusive.
         end_date:
           type: string
           maxLength: 10
-          pattern: "^\\d{4}-\\d{2}-\\d{2}$"
+          pattern: ^\d{4}-\d{2}-\d{2}$
           description: End date in local time (YYYY-MM-DD), exclusive.
         min_kwh:
           type: number
@@ -372,53 +399,45 @@ components:
         reservation:
           $ref: '#/components/schemas/ReservationRestrictionType'
       additionalProperties: true
-
-    # ---- Enums ----
-
     TariffType:
       type: string
       enum:
-        - AD_HOC_PAYMENT
-        - PROFILE_CHEAP
-        - PROFILE_FAST
-        - PROFILE_GREEN
-        - REGULAR
+      - AD_HOC_PAYMENT
+      - PROFILE_CHEAP
+      - PROFILE_FAST
+      - PROFILE_GREEN
+      - REGULAR
       description: Type of tariff.
-
     TariffDimensionType:
       type: string
       enum:
-        - ENERGY
-        - FLAT
-        - PARKING_TIME
-        - TIME
-      description: >-
-        The dimension being priced: ENERGY (kWh), FLAT (no unit), PARKING_TIME (hours not charging),
-        TIME (hours charging).
-
+      - ENERGY
+      - FLAT
+      - PARKING_TIME
+      - TIME
+      description: 'The dimension being priced: ENERGY (kWh), FLAT (no unit), PARKING_TIME
+        (hours not charging), TIME (hours charging).'
     DayOfWeek:
       type: string
       enum:
-        - MONDAY
-        - TUESDAY
-        - WEDNESDAY
-        - THURSDAY
-        - FRIDAY
-        - SATURDAY
-        - SUNDAY
+      - MONDAY
+      - TUESDAY
+      - WEDNESDAY
+      - THURSDAY
+      - FRIDAY
+      - SATURDAY
+      - SUNDAY
       description: Day of the week.
-
     ReservationRestrictionType:
       type: string
       enum:
-        - RESERVATION
-        - RESERVATION_EXPIRES
+      - RESERVATION
+      - RESERVATION_EXPIRES
       description: Type of reservation restriction in a TariffElement.
-
     TaxIncluded:
       type: string
       enum:
-        - "YES"
-        - "NO"
-        - "N/A"
+      - 'YES'
+      - 'NO'
+      - N/A
       description: Whether taxes are included in this Tariff's prices.

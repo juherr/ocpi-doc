@@ -1,0 +1,87 @@
+openapi: 3.1.0
+info:
+  title: OCPI 2.3.0 - Shared Types
+  version: 2.3.0
+
+paths: {}
+
+components:
+  schemas:
+    DateTime:
+      type: string
+      format: date-time
+      description: >-
+        Timestamp formatted as RFC 3339 string in UTC.
+        Fractional seconds MAY be used.
+      example: "2024-01-15T10:30:00Z"
+
+    CiString:
+      type: string
+      description: Case Insensitive String. Only printable ASCII allowed.
+
+    DisplayText:
+      type: object
+      description: Multi-language text with a language code.
+      required:
+        - language
+        - text
+      properties:
+        language:
+          type: string
+          minLength: 2
+          maxLength: 2
+          description: Language Code ISO 639-1.
+        text:
+          type: string
+          maxLength: 512
+          description: Text to be displayed to an end user. No markup, HTML etc. allowed.
+      additionalProperties: true
+
+    Price:
+      type: object
+      description: Price with taxes breakdown.
+      required:
+        - before_taxes
+      properties:
+        before_taxes:
+          type: number
+          description: Price/Cost excluding taxes.
+        taxes:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaxAmount'
+          description: All taxes applicable to this price.
+      additionalProperties: true
+
+    TaxAmount:
+      type: object
+      description: Breakdown of a single tax applicable to a price.
+      required:
+        - name
+        - amount
+      properties:
+        name:
+          type: string
+          description: >-
+            A description of the tax (e.g. "QST", "VAT", "General Sales Tax").
+        account_number:
+          type: string
+          description: Tax Account Number of the business entity remitting these taxes.
+        percentage:
+          type: number
+          description: Tax percentage.
+        amount:
+          type: number
+          description: The amount of money of this tax that is due.
+      additionalProperties: true
+
+    Role:
+      type: string
+      enum:
+        - CPO
+        - EMSP
+        - NAP
+        - NSP
+        - OTHER
+        - SCSP
+      description: The role of a party in the EV charging ecosystem.

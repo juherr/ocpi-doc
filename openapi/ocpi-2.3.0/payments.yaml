@@ -1,204 +1,194 @@
-# OCPI 2.3.0 - Payments Module
-# Sender (PTP) and Receiver (CPO) interfaces for Terminals and Financial Advice Confirmations
 openapi: 3.1.0
 info:
   title: OCPI 2.3.0 - Payments
-  description: >-
-    The Payments module provides information about payment terminals and financial
-    advice confirmations. Data owner is typically the PTP (Payment Terminal Provider).
+  description: The Payments module provides information about payment terminals and
+    financial advice confirmations. Data owner is typically the PTP (Payment Terminal
+    Provider).
   version: 2.3.0
   license:
     name: Creative Commons Attribution-NoDerivatives 4.0 International
     url: https://creativecommons.org/licenses/by-nd/4.0/
-
 externalDocs:
   description: OCPI 2.3.0 Specification
   url: https://github.com/ocpi/ocpi
-
 servers:
-  - url: https://example.com/ocpi/2.3.0
-    description: Example OCPI server
-
+- url: https://example.com/ocpi/2.3.0
+  description: Example OCPI server
 security:
-  - TokenAuth: []
-
+- TokenAuth: []
 paths:
-  # ==== Terminals ====
-
-  # ---- Sender Interface (PTP) ----
-
   /payments/terminals:
     get:
       operationId: getTerminals
       summary: Get Terminals List (Sender)
-      description: >-
-        Fetch Terminal objects from the PTP, last updated between date_from and date_to (paginated).
+      description: Fetch Terminal objects from the PTP, last updated between date_from
+        and date_to (paginated).
       tags:
-        - Payments - Terminals - Sender
+      - Payments - Terminals - Sender
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - $ref: './shared/parameters.yaml#/components/parameters/date_from'
-        - $ref: './shared/parameters.yaml#/components/parameters/date_to'
-        - $ref: './shared/parameters.yaml#/components/parameters/offset'
-        - $ref: './shared/parameters.yaml#/components/parameters/limit'
+      - $ref: ./shared/parameters.yaml#/components/parameters/date_from
+      - $ref: ./shared/parameters.yaml#/components/parameters/date_to
+      - $ref: ./shared/parameters.yaml#/components/parameters/offset
+      - $ref: ./shared/parameters.yaml#/components/parameters/limit
       responses:
         '200':
           description: List of Terminal objects.
           headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
             X-Total-Count:
-              $ref: './shared/headers.yaml#/components/headers/X-Total-Count'
+              $ref: ./shared/headers.yaml#/components/headers/X-Total-Count
             X-Limit:
-              $ref: './shared/headers.yaml#/components/headers/X-Limit'
+              $ref: ./shared/headers.yaml#/components/headers/X-Limit
             Link:
-              $ref: './shared/headers.yaml#/components/headers/Link'
+              $ref: ./shared/headers.yaml#/components/headers/Link
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Terminal'
+                $ref: '#/components/schemas/TerminalListResponse'
         '401':
           description: Unauthorized.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /payments/terminals/{terminal_id}:
     get:
       operationId: getTerminal
       summary: Get Terminal (Sender)
       description: Fetch a specific Terminal object by ID.
       tags:
-        - Payments - Terminals - Sender
+      - Payments - Terminals - Sender
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - name: terminal_id
-          in: path
-          required: true
-          description: Terminal.terminal_id of the Terminal to retrieve.
-          schema:
-            type: string
-            maxLength: 36
+      - name: terminal_id
+        in: path
+        required: true
+        description: Terminal.terminal_id of the Terminal to retrieve.
+        schema:
+          type: string
+          maxLength: 36
       responses:
         '200':
           description: The requested Terminal object.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/Terminal'
+                $ref: '#/components/schemas/TerminalResponse'
         '401':
           description: Unauthorized.
         '404':
           description: Terminal not found.
-
     put:
       operationId: putTerminal
       summary: Update Terminal (Sender)
       description: Update location data of a Terminal.
       tags:
-        - Payments - Terminals - Sender
+      - Payments - Terminals - Sender
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - name: terminal_id
-          in: path
-          required: true
-          schema:
-            type: string
-            maxLength: 36
+      - name: terminal_id
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Terminal'
+            example:
+              terminal_id: 9e94f62c-661b-4afa-b6da-019b58fab9ac
+              address: Street 1
+              city: Vienna
+              country: AUT
+              coordinates:
+                latitude: '51.047599'
+                longitude: '3.729944'
+              customer_reference: BP
+              invoice_base_url: https://somecompany.com/invoices
+              invoice_creator: PTP
+              location_ids:
+              - df37373d-1669-4127-a6ac-d86750095119
+              - a06dc823-3e5a-40c8-89cf-1b5b9e941412
+              - 55719888-ed09-4cca-82cc-803bdb77bf26
+              last_updated: '2018-12-10T17:16:15Z'
       responses:
         '200':
           description: Terminal updated.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '401':
           description: Unauthorized.
-
     patch:
       operationId: patchTerminal
       summary: Partially Update Terminal (Sender)
       description: Assign location_ids and/or evse_uids to a Terminal.
       tags:
-        - Payments - Terminals - Sender
+      - Payments - Terminals - Sender
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - name: terminal_id
-          in: path
-          required: true
-          schema:
-            type: string
-            maxLength: 36
+      - name: terminal_id
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              description: Partial Terminal object with location_ids and/or evse_uids.
-              additionalProperties: true
+              $ref: '#/components/schemas/TerminalPatch'
+            example:
+              location_ids:
+              - df37373d-1669-4127-a6ac-d86750095119
+              - a06dc823-3e5a-40c8-89cf-1b5b9e941412
+              - 55719888-ed09-4cca-82cc-803bdb77bf26
       responses:
         '200':
           description: Terminal partially updated.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '401':
           description: Unauthorized.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /payments/terminals/activate:
     post:
       operationId: postActivateTerminal
       summary: Activate Terminal (Sender)
       description: Activate a Terminal.
       tags:
-        - Payments - Terminals - Sender
-      parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+      - Payments - Terminals - Sender
       requestBody:
         required: true
         content:
@@ -208,61 +198,66 @@ paths:
       responses:
         '200':
           description: Terminal activated.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '401':
           description: Unauthorized.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /payments/terminals/{terminal_id}/deactivate:
     post:
       operationId: postDeactivateTerminal
       summary: Deactivate Terminal (Sender)
       description: Deactivate a Terminal.
       tags:
-        - Payments - Terminals - Sender
+      - Payments - Terminals - Sender
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - name: terminal_id
-          in: path
-          required: true
-          schema:
-            type: string
-            maxLength: 36
+      - name: terminal_id
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
       responses:
         '200':
           description: Terminal deactivated.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '401':
           description: Unauthorized.
-
-  # ---- Receiver Interface (CPO) - Terminals ----
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /payments/terminals/receiver:
     post:
       operationId: postReceiverTerminal
       summary: Create Terminal (Receiver)
       description: PTP creates a newly shipped terminal in the CPO's system.
       tags:
-        - Payments - Terminals - Receiver
-      parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+      - Payments - Terminals - Receiver
       requestBody:
         required: true
         content:
@@ -272,155 +267,147 @@ paths:
       responses:
         '201':
           description: Terminal created.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '401':
           description: Unauthorized.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /payments/terminals/receiver/{terminal_id}:
     get:
       operationId: getReceiverTerminal
       summary: Get Terminal (Receiver)
       description: Retrieve a Terminal object from the CPO's system.
       tags:
-        - Payments - Terminals - Receiver
+      - Payments - Terminals - Receiver
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - name: terminal_id
-          in: path
-          required: true
-          schema:
-            type: string
-            maxLength: 36
+      - name: terminal_id
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
       responses:
         '200':
           description: The requested Terminal object.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/Terminal'
+                $ref: '#/components/schemas/TerminalResponse'
         '401':
           description: Unauthorized.
         '404':
           description: Terminal not found.
-
-  # ==== Financial Advice Confirmations ====
-
-  # ---- Sender Interface (PTP) ----
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /payments/financial-advice-confirmations:
     get:
       operationId: getFinancialAdviceConfirmations
       summary: Get FAC List (Sender)
-      description: >-
-        Fetch FinancialAdviceConfirmation objects, last updated between date_from and date_to (paginated).
+      description: Fetch FinancialAdviceConfirmation objects, last updated between
+        date_from and date_to (paginated).
       tags:
-        - Payments - FAC - Sender
+      - Payments - FAC - Sender
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - $ref: './shared/parameters.yaml#/components/parameters/date_from'
-        - $ref: './shared/parameters.yaml#/components/parameters/date_to'
-        - $ref: './shared/parameters.yaml#/components/parameters/offset'
-        - $ref: './shared/parameters.yaml#/components/parameters/limit'
+      - $ref: ./shared/parameters.yaml#/components/parameters/date_from
+      - $ref: ./shared/parameters.yaml#/components/parameters/date_to
+      - $ref: ./shared/parameters.yaml#/components/parameters/offset
+      - $ref: ./shared/parameters.yaml#/components/parameters/limit
       responses:
         '200':
           description: List of FinancialAdviceConfirmation objects.
           headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
             X-Total-Count:
-              $ref: './shared/headers.yaml#/components/headers/X-Total-Count'
+              $ref: ./shared/headers.yaml#/components/headers/X-Total-Count
             X-Limit:
-              $ref: './shared/headers.yaml#/components/headers/X-Limit'
+              $ref: ./shared/headers.yaml#/components/headers/X-Limit
             Link:
-              $ref: './shared/headers.yaml#/components/headers/Link'
+              $ref: ./shared/headers.yaml#/components/headers/Link
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/FinancialAdviceConfirmation'
+                $ref: '#/components/schemas/FinancialAdviceConfirmationListResponse'
         '401':
           description: Unauthorized.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /payments/financial-advice-confirmations/{fac_id}:
     get:
       operationId: getFinancialAdviceConfirmation
       summary: Get FAC (Sender)
       description: Fetch a specific FinancialAdviceConfirmation by ID.
       tags:
-        - Payments - FAC - Sender
+      - Payments - FAC - Sender
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - name: fac_id
-          in: path
-          required: true
-          description: FinancialAdviceConfirmation.id to retrieve.
-          schema:
-            type: string
-            maxLength: 36
+      - name: fac_id
+        in: path
+        required: true
+        description: FinancialAdviceConfirmation.id to retrieve.
+        schema:
+          type: string
+          maxLength: 36
       responses:
         '200':
           description: The requested FinancialAdviceConfirmation.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/FinancialAdviceConfirmation'
+                $ref: '#/components/schemas/FinancialAdviceConfirmationResponse'
         '401':
           description: Unauthorized.
         '404':
           description: FAC not found.
-
-  # ---- Receiver Interface (CPO) - FAC ----
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /payments/financial-advice-confirmations/receiver:
     post:
       operationId: postReceiverFac
       summary: Create FAC (Receiver)
-      description: PTP creates a FinancialAdviceConfirmation in the CPO's system after capture at PSP.
+      description: PTP creates a FinancialAdviceConfirmation in the CPO's system after
+        capture at PSP.
       tags:
-        - Payments - FAC - Receiver
-      parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+      - Payments - FAC - Receiver
       requestBody:
         required: true
         content:
@@ -430,51 +417,61 @@ paths:
       responses:
         '201':
           description: FAC created.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '401':
           description: Unauthorized.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /payments/financial-advice-confirmations/receiver/{fac_id}:
     get:
       operationId: getReceiverFac
       summary: Get FAC (Receiver)
       description: Retrieve a FinancialAdviceConfirmation from the CPO's system.
       tags:
-        - Payments - FAC - Receiver
+      - Payments - FAC - Receiver
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - name: fac_id
-          in: path
-          required: true
-          schema:
-            type: string
-            maxLength: 36
+      - name: fac_id
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
       responses:
         '200':
           description: The requested FinancialAdviceConfirmation.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/FinancialAdviceConfirmation'
+                $ref: '#/components/schemas/FinancialAdviceConfirmationResponse'
         '401':
           description: Unauthorized.
         '404':
           description: FAC not found.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
 components:
   securitySchemes:
     TokenAuth:
@@ -483,12 +480,118 @@ components:
       name: Authorization
       description: OCPI credentials token passed in the Authorization header.
   schemas:
+    TerminalResponse:
+      type: object
+      required:
+      - status_code
+      - timestamp
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Terminal'
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    TerminalListResponse:
+      type: object
+      required:
+      - status_code
+      - timestamp
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Terminal'
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    FinancialAdviceConfirmationResponse:
+      type: object
+      required:
+      - status_code
+      - timestamp
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/FinancialAdviceConfirmation'
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    FinancialAdviceConfirmationListResponse:
+      type: object
+      required:
+      - status_code
+      - timestamp
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FinancialAdviceConfirmation'
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    TerminalPatch:
+      type: object
+      description: Partial Terminal update used to assign location_ids and/or evse_uids.
+      properties:
+        location_ids:
+          type: array
+          items:
+            type: string
+            maxLength: 36
+        evse_uids:
+          type: array
+          items:
+            type: string
+            maxLength: 36
+        last_updated:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      anyOf:
+      - required:
+        - location_ids
+      - required:
+        - evse_uids
+      additionalProperties: true
     Terminal:
       type: object
       description: A payment terminal device.
       required:
-        - terminal_id
-        - last_updated
+      - terminal_id
+      - last_updated
       properties:
         terminal_id:
           type: string
@@ -527,7 +630,7 @@ components:
           maxLength: 3
           description: ISO 3166-1 alpha-3 country code.
         coordinates:
-          $ref: './shared/common.yaml#/components/schemas/GeoLocation'
+          $ref: ./shared/schemas/locations.yaml#/components/schemas/GeoLocation
         invoice_base_url:
           type: string
           format: uri
@@ -552,20 +655,19 @@ components:
             maxLength: 36
           description: List of all EVSEs assigned to this terminal.
         last_updated:
-          $ref: './shared/common.yaml#/components/schemas/DateTime'
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
       additionalProperties: true
-
     FinancialAdviceConfirmation:
       type: object
       description: Confirmation of a financial advice (payment capture).
       required:
-        - id
-        - authorization_reference
-        - total_costs
-        - currency
-        - eft_data
-        - capture_status_code
-        - last_updated
+      - id
+      - authorization_reference
+      - total_costs
+      - currency
+      - eft_data
+      - capture_status_code
+      - last_updated
       properties:
         id:
           type: string
@@ -576,7 +678,7 @@ components:
           maxLength: 36
           description: Reference to authorization given by PTP in Commands.StartSession.
         total_costs:
-          $ref: './shared/common.yaml#/components/schemas/Price'
+          $ref: ./shared/schemas/types.yaml#/components/schemas/Price
         currency:
           type: string
           maxLength: 3
@@ -595,22 +697,18 @@ components:
           maxLength: 255
           description: Message about any error at financial advice.
         last_updated:
-          $ref: './shared/common.yaml#/components/schemas/DateTime'
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
       additionalProperties: true
-
-    # ---- Enums ----
-
     InvoiceCreator:
       type: string
       enum:
-        - CPO
-        - PTP
+      - CPO
+      - PTP
       description: Which party creates the invoice for the EV driver.
-
     CaptureStatusCode:
       type: string
       enum:
-        - SUCCESS
-        - PARTIAL_SUCCESS
-        - FAILED
+      - SUCCESS
+      - PARTIAL_SUCCESS
+      - FAILED
       description: Status code for the financial advice (payment capture).

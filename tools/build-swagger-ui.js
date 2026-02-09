@@ -17,12 +17,14 @@
 // - You want one page per version (no version selector)
 //
 // Notes:
-// - We bundle the root spec with swagger-cli to avoid $ref resolution issues in browsers/GitHub Pages.
+// - We bundle the root spec with Redocly CLI to avoid $ref resolution issues in browsers/GitHub Pages
+//   while preserving reusable named schemas for Swagger UI/codegen readability.
 // - The generated UI includes a "custom server" input stored in localStorage per version.
 
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
+const YAML = require("yaml");
 
 const swaggerUiDistDir = path.dirname(require.resolve("swagger-ui-dist/package.json"));
 const swaggerUiAssetsDir = swaggerUiDistDir; // contains swagger-ui.css/js files
@@ -74,10 +76,89 @@ function listOcpiVersionsFromFolders() {
 }
 
 function bundleOpenApiYaml(inputYamlPath, outputYamlPath) {
-  // Use local swagger-cli if available; fallback to npx
-  // - yaml output keeps it readable
-  const cmd = `npx swagger-cli bundle "${inputYamlPath}" -t yaml -o "${outputYamlPath}"`;
+  // Use Redocly bundle to preserve named reusable schemas.
+  const cmd = `npx --yes @redocly/cli bundle "${inputYamlPath}" --output "${outputYamlPath}"`;
   execSync(cmd, { stdio: "inherit" });
+}
+
+function normalizeHeaderGroupingInBundle(outputYamlPath) {
+  const doc = YAML.parse(fs.readFileSync(outputYamlPath, "utf8"));
+  const paths = doc.paths || {};
+  const components = doc.components || {};
+  const parameters = components.parameters || {};
+
+  const methods = ["get", "put", "post", "patch", "delete", "options", "head", "trace"];
+  const correlationHeaders = ["X-Request-ID", "X-Correlation-ID"];
+  const routingHeaders = [
+    "OCPI-from-country-code",
+    "OCPI-from-party-id",
+    "OCPI-to-country-code",
+    "OCPI-to-party-id",
+  ];
+
+  function resolveHeaderName(param) {
+    if (!param || typeof param !== "object") return null;
+    if (param.$ref) {
+      const m = param.$ref.match(/^#\/components\/parameters\/(.+)$/);
+      if (!m) return null;
+      const key = decodeURIComponent(m[1]);
+      const p = parameters[key];
+      if (p && p.in === "header") {
+        return p.name || key;
+      }
+      return null;
+    }
+    if (param.in === "header") {
+      return param.name || null;
+    }
+    return null;
+  }
+
+  function headerRef(name) {
+    return { $ref: `#/components/parameters/${encodeURIComponent(name)}` };
+  }
+
+  for (const [pathKey, pathItem] of Object.entries(paths)) {
+    if (!pathItem || typeof pathItem !== "object") continue;
+
+    const opNames = methods.filter((m) => pathItem[m] && typeof pathItem[m] === "object");
+    if (opNames.length === 0) continue;
+
+    const isExceptionPath = pathKey.startsWith("/versions") || pathKey.startsWith("/credentials");
+    const targetHeaders = isExceptionPath
+      ? correlationHeaders
+      : correlationHeaders.concat(routingHeaders);
+
+    if (!Array.isArray(pathItem.parameters)) {
+      pathItem.parameters = [];
+    }
+
+    const pathHeaderSet = new Set(
+      pathItem.parameters.map((p) => resolveHeaderName(p)).filter(Boolean),
+    );
+
+    for (const h of targetHeaders) {
+      if (!pathHeaderSet.has(h)) {
+        pathItem.parameters.push(headerRef(h));
+      }
+    }
+
+    for (const opName of opNames) {
+      const operation = pathItem[opName];
+      if (!Array.isArray(operation.parameters)) continue;
+
+      operation.parameters = operation.parameters.filter((p) => {
+        const h = resolveHeaderName(p);
+        return !(h && targetHeaders.includes(h));
+      });
+
+      if (operation.parameters.length === 0) {
+        delete operation.parameters;
+      }
+    }
+  }
+
+  fs.writeFileSync(outputYamlPath, YAML.stringify(doc), "utf8");
 }
 
 function generateIndexHtml(version) {
@@ -220,7 +301,7 @@ function generateIndexHtml(version) {
         layout: "BaseLayout",
         deepLinking: true,
         docExpansion: "list",
-        defaultModelsExpandDepth: -1,
+        defaultModelsExpandDepth: 1,
         displayRequestDuration: true,
         filter: true,
         tagsSorter: "alpha",
@@ -302,6 +383,7 @@ function main() {
     // 2) Bundle the root spec to avoid $ref HTTP resolution issues in browsers
     const outSpec = path.join(outDir, "openapi.yaml");
     bundleOpenApiYaml(srcRootSpec, outSpec);
+    normalizeHeaderGroupingInBundle(outSpec);
 
     // (Optional) keep a copy of the raw root spec (with refs) for debugging
     // fs.copyFileSync(srcRootSpec, path.join(outDir, "openapi.raw.yaml"));

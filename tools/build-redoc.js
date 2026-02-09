@@ -133,9 +133,6 @@ function main() {
     process.exit(1);
   }
 
-  if (fs.existsSync(PUBLIC_API_DIR)) {
-    fs.rmSync(PUBLIC_API_DIR, { recursive: true, force: true });
-  }
   ensureDir(PUBLIC_API_DIR);
 
   for (const { version, rootSpec } of versions) {
@@ -143,9 +140,6 @@ function main() {
     const outVersionDir = path.join(PUBLIC_API_DIR, version);
     const outHtmlPath = path.join(outVersionDir, "index.html");
 
-    if (fs.existsSync(outVersionDir)) {
-      fs.rmSync(outVersionDir, { recursive: true, force: true });
-    }
     ensureDir(outVersionDir);
 
     buildRedoc(version, rootSpec, outHtmlPath);

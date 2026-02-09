@@ -5,6 +5,8 @@ info:
   license:
     name: Creative Commons Attribution-NoDerivatives 4.0 International
     url: https://creativecommons.org/licenses/by-nd/4.0/
+security:
+  - TokenAuth: []
 paths:
   /cdrs:
     $ref: ./cdrs.yaml#/paths/~1cdrs
@@ -84,3 +86,19 @@ paths:
     $ref: ./versions.yaml#/paths/~1versions
   /versions/{version}:
     $ref: ./versions.yaml#/paths/~1versions~1{version}
+webhooks:
+  active-charging-profile-result:
+    $ref: ./charging-profiles.yaml#/webhooks/activeChargingProfileResult
+  charging-profile-result:
+    $ref: ./charging-profiles.yaml#/webhooks/chargingProfileResult
+  clear-profile-result:
+    $ref: ./charging-profiles.yaml#/webhooks/clearProfileResult
+  command-result:
+    $ref: ./commands.yaml#/webhooks/commandResult
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: OCPI credentials token passed in the Authorization header.

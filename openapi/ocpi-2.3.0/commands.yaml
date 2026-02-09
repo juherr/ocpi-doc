@@ -1,45 +1,29 @@
-# OCPI 2.3.0 - Commands Module
-# Sender (eMSP) and Receiver (CPO) interfaces for remote commands with async callbacks
 openapi: 3.1.0
 info:
   title: OCPI 2.3.0 - Commands
-  description: >-
-    The Commands module enables remote commands from eMSP to CPO, such as starting/stopping
-    sessions, reservations, and unlocking connectors. Uses async callbacks via response_url.
+  description: The Commands module enables remote commands from eMSP to CPO, such
+    as starting/stopping sessions, reservations, and unlocking connectors. Uses async
+    callbacks via response_url.
   version: 2.3.0
   license:
     name: Creative Commons Attribution-NoDerivatives 4.0 International
     url: https://creativecommons.org/licenses/by-nd/4.0/
-
 externalDocs:
   description: OCPI 2.3.0 Specification
   url: https://github.com/ocpi/ocpi
-
 servers:
-  - url: https://example.com/ocpi/2.3.0
-    description: Example OCPI server
-
+- url: https://example.com/ocpi/2.3.0
+  description: Example OCPI server
 security:
-  - TokenAuth: []
-
+- TokenAuth: []
 paths:
-  # ---- Receiver Interface (CPO) ----
-
   /commands/CANCEL_RESERVATION:
     post:
       operationId: postCancelReservation
       summary: Cancel Reservation (Receiver)
       description: Request the Charge Point to cancel a specific reservation.
       tags:
-        - Commands - Receiver
-      parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+      - Commands - Receiver
       requestBody:
         required: true
         content:
@@ -49,15 +33,15 @@ paths:
       responses:
         '200':
           description: Command acknowledged by CPO.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/CommandResponse'
+                $ref: '#/components/schemas/CommandEnvelopeResponse'
         '401':
           description: Unauthorized.
       callbacks:
@@ -65,7 +49,17 @@ paths:
           '{$request.body#/response_url}':
             post:
               summary: Async result from Charge Point
-              description: The CPO sends the actual result from the Charge Point to the eMSP's response_url.
+              description: The CPO sends the actual result from the Charge Point to
+                the eMSP's response_url.
+              parameters:
+              - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+              - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
+              security:
+              - TokenAuth: []
               requestBody:
                 required: true
                 content:
@@ -75,28 +69,31 @@ paths:
               responses:
                 '200':
                   description: Result received.
+                  headers:
+                    X-Request-ID:
+                      $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+                    X-Correlation-ID:
+                      $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
                   content:
                     application/json:
                       schema:
-                        $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                        $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
                 '400':
                   description: Invalid callback payload.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /commands/RESERVE_NOW:
     post:
       operationId: postReserveNow
       summary: Reserve Now (Receiver)
       description: Request the Charge Point to reserve an EVSE for a Token.
       tags:
-        - Commands - Receiver
-      parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+      - Commands - Receiver
       requestBody:
         required: true
         content:
@@ -106,15 +103,15 @@ paths:
       responses:
         '200':
           description: Command acknowledged by CPO.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/CommandResponse'
+                $ref: '#/components/schemas/CommandEnvelopeResponse'
         '401':
           description: Unauthorized.
       callbacks:
@@ -122,6 +119,15 @@ paths:
           '{$request.body#/response_url}':
             post:
               summary: Async result from Charge Point
+              parameters:
+              - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+              - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
+              security:
+              - TokenAuth: []
               requestBody:
                 required: true
                 content:
@@ -131,28 +137,31 @@ paths:
               responses:
                 '200':
                   description: Result received.
+                  headers:
+                    X-Request-ID:
+                      $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+                    X-Correlation-ID:
+                      $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
                   content:
                     application/json:
                       schema:
-                        $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                        $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
                 '400':
                   description: Invalid callback payload.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /commands/START_SESSION:
     post:
       operationId: postStartSession
       summary: Start Session (Receiver)
       description: Request the Charge Point to start a transaction on the given EVSE/Connector.
       tags:
-        - Commands - Receiver
-      parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+      - Commands - Receiver
       requestBody:
         required: true
         content:
@@ -162,15 +171,15 @@ paths:
       responses:
         '200':
           description: Command acknowledged by CPO.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/CommandResponse'
+                $ref: '#/components/schemas/CommandEnvelopeResponse'
         '401':
           description: Unauthorized.
       callbacks:
@@ -178,6 +187,15 @@ paths:
           '{$request.body#/response_url}':
             post:
               summary: Async result from Charge Point
+              parameters:
+              - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+              - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
+              security:
+              - TokenAuth: []
               requestBody:
                 required: true
                 content:
@@ -187,28 +205,31 @@ paths:
               responses:
                 '200':
                   description: Result received.
+                  headers:
+                    X-Request-ID:
+                      $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+                    X-Correlation-ID:
+                      $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
                   content:
                     application/json:
                       schema:
-                        $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                        $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
                 '400':
                   description: Invalid callback payload.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /commands/STOP_SESSION:
     post:
       operationId: postStopSession
       summary: Stop Session (Receiver)
       description: Request the Charge Point to stop an ongoing session.
       tags:
-        - Commands - Receiver
-      parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+      - Commands - Receiver
       requestBody:
         required: true
         content:
@@ -218,15 +239,15 @@ paths:
       responses:
         '200':
           description: Command acknowledged by CPO.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/CommandResponse'
+                $ref: '#/components/schemas/CommandEnvelopeResponse'
         '401':
           description: Unauthorized.
       callbacks:
@@ -234,6 +255,15 @@ paths:
           '{$request.body#/response_url}':
             post:
               summary: Async result from Charge Point
+              parameters:
+              - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+              - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
+              security:
+              - TokenAuth: []
               requestBody:
                 required: true
                 content:
@@ -243,30 +273,32 @@ paths:
               responses:
                 '200':
                   description: Result received.
+                  headers:
+                    X-Request-ID:
+                      $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+                    X-Correlation-ID:
+                      $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
                   content:
                     application/json:
                       schema:
-                        $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                        $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
                 '400':
                   description: Invalid callback payload.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /commands/UNLOCK_CONNECTOR:
     post:
       operationId: postUnlockConnector
       summary: Unlock Connector (Receiver)
-      description: >-
-        Request the Charge Point to unlock the connector. This functionality is
-        for help desk operators only.
+      description: Request the Charge Point to unlock the connector. This functionality
+        is for help desk operators only.
       tags:
-        - Commands - Receiver
-      parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
+      - Commands - Receiver
       requestBody:
         required: true
         content:
@@ -276,15 +308,15 @@ paths:
       responses:
         '200':
           description: Command acknowledged by CPO.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/CommandResponse'
+                $ref: '#/components/schemas/CommandEnvelopeResponse'
         '401':
           description: Unauthorized.
       callbacks:
@@ -292,6 +324,15 @@ paths:
           '{$request.body#/response_url}':
             post:
               summary: Async result from Charge Point
+              parameters:
+              - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+              - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+              - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
+              security:
+              - TokenAuth: []
               requestBody:
                 required: true
                 content:
@@ -301,17 +342,61 @@ paths:
               responses:
                 '200':
                   description: Result received.
+                  headers:
+                    X-Request-ID:
+                      $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+                    X-Correlation-ID:
+                      $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
                   content:
                     application/json:
                       schema:
-                        $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                        $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
                 '400':
                   description: Invalid callback payload.
-
-  # ---- Sender Interface (eMSP) ----
-  # The Sender receives async results via POST to the response_url it provided.
-  # The URL structure is defined by the Sender (eMSP), documented via callbacks above.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
+webhooks:
+  commandResult:
+    post:
+      operationId: postCommandResult
+      summary: Receive async CommandResult (Sender)
+      description: The Sender (typically eMSP) implements this webhook to receive
+        the async CommandResult from the CPO via POST to the response_url provided
+        in the original command request.
+      tags:
+      - Commands - Sender
+      parameters:
+      - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+      - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+      - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+      - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+      - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+      - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
+      security:
+      - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommandResult'
+      responses:
+        '200':
+          description: Result received.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
+          content:
+            application/json:
+              schema:
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
 components:
   securitySchemes:
     TokenAuth:
@@ -320,14 +405,32 @@ components:
       name: Authorization
       description: OCPI credentials token passed in the Authorization header.
   schemas:
-    # ---- Command Request Objects ----
-
+    CommandEnvelopeResponse:
+      type: object
+      required:
+      - status_code
+      - timestamp
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/CommandResponse'
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
     CancelReservation:
       type: object
       description: Request to cancel a reservation.
       required:
-        - response_url
-        - reservation_id
+      - response_url
+      - reservation_id
       properties:
         response_url:
           type: string
@@ -339,16 +442,15 @@ components:
           maxLength: 36
           description: Unique reservation ID to cancel.
       additionalProperties: true
-
     ReserveNow:
       type: object
       description: Request to reserve an EVSE for a Token.
       required:
-        - response_url
-        - token
-        - expiry_date
-        - reservation_id
-        - location_id
+      - response_url
+      - token
+      - expiry_date
+      - reservation_id
+      - location_id
       properties:
         response_url:
           type: string
@@ -356,9 +458,9 @@ components:
           maxLength: 255
           description: URL that the CommandResult POST should be sent to.
         token:
-          $ref: './tokens.yaml#/components/schemas/Token'
+          $ref: ./tokens.yaml#/components/schemas/Token
         expiry_date:
-          $ref: './shared/common.yaml#/components/schemas/DateTime'
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
         reservation_id:
           type: string
           maxLength: 36
@@ -376,14 +478,13 @@ components:
           maxLength: 36
           description: Reference to the authorization given by the eMSP.
       additionalProperties: true
-
     StartSession:
       type: object
       description: Request to start a charging session.
       required:
-        - response_url
-        - token
-        - location_id
+      - response_url
+      - token
+      - location_id
       properties:
         response_url:
           type: string
@@ -391,7 +492,7 @@ components:
           maxLength: 255
           description: URL that the CommandResult POST should be sent to.
         token:
-          $ref: './tokens.yaml#/components/schemas/Token'
+          $ref: ./tokens.yaml#/components/schemas/Token
         location_id:
           type: string
           maxLength: 36
@@ -403,20 +504,19 @@ components:
         connector_id:
           type: string
           maxLength: 36
-          description: >-
-            Optional Connector.id. Required when START_SESSION_CONNECTOR_REQUIRED capability is set.
+          description: Optional Connector.id. Required when START_SESSION_CONNECTOR_REQUIRED
+            capability is set.
         authorization_reference:
           type: string
           maxLength: 36
           description: Reference to the authorization given by the eMSP.
       additionalProperties: true
-
     StopSession:
       type: object
       description: Request to stop an ongoing charging session.
       required:
-        - response_url
-        - session_id
+      - response_url
+      - session_id
       properties:
         response_url:
           type: string
@@ -428,15 +528,14 @@ components:
           maxLength: 36
           description: Session.id of the Session to stop.
       additionalProperties: true
-
     UnlockConnector:
       type: object
       description: Request to unlock a connector (for help desk operators).
       required:
-        - response_url
-        - location_id
-        - evse_uid
-        - connector_id
+      - response_url
+      - location_id
+      - evse_uid
+      - connector_id
       properties:
         response_url:
           type: string
@@ -456,17 +555,13 @@ components:
           maxLength: 36
           description: Connector.id of the Connector to unlock.
       additionalProperties: true
-
-    # ---- Response/Result Objects ----
-
     CommandResponse:
       type: object
-      description: >-
-        Immediate response from CPO indicating whether the command was understood
-        and forwarded (not the result from the Charge Point itself).
+      description: Immediate response from CPO indicating whether the command was
+        understood and forwarded (not the result from the Charge Point itself).
       required:
-        - result
-        - timeout
+      - result
+      - timeout
       properties:
         result:
           $ref: '#/components/schemas/CommandResponseType'
@@ -476,47 +571,42 @@ components:
         message:
           type: array
           items:
-            $ref: './shared/common.yaml#/components/schemas/DisplayText'
+            $ref: ./shared/schemas/types.yaml#/components/schemas/DisplayText
           description: Human-readable description of the result.
       additionalProperties: true
-
     CommandResult:
       type: object
-      description: >-
-        Asynchronous result from the Charge Point, sent via POST to the response_url.
+      description: Asynchronous result from the Charge Point, sent via POST to the
+        response_url.
       required:
-        - result
+      - result
       properties:
         result:
           $ref: '#/components/schemas/CommandResultType'
         message:
           type: array
           items:
-            $ref: './shared/common.yaml#/components/schemas/DisplayText'
+            $ref: ./shared/schemas/types.yaml#/components/schemas/DisplayText
           description: Human-readable description of the result.
       additionalProperties: true
-
-    # ---- Enums ----
-
     CommandResponseType:
       type: string
       enum:
-        - NOT_SUPPORTED
-        - REJECTED
-        - ACCEPTED
-        - UNKNOWN_SESSION
+      - NOT_SUPPORTED
+      - REJECTED
+      - ACCEPTED
+      - UNKNOWN_SESSION
       description: Response from the CPO on the command request.
-
     CommandResultType:
       type: string
       enum:
-        - ACCEPTED
-        - CANCELED_RESERVATION
-        - EVSE_OCCUPIED
-        - EVSE_INOPERATIVE
-        - FAILED
-        - NOT_SUPPORTED
-        - REJECTED
-        - TIMEOUT
-        - UNKNOWN_RESERVATION
+      - ACCEPTED
+      - CANCELED_RESERVATION
+      - EVSE_OCCUPIED
+      - EVSE_INOPERATIVE
+      - FAILED
+      - NOT_SUPPORTED
+      - REJECTED
+      - TIMEOUT
+      - UNKNOWN_RESERVATION
       description: Result of the command as reported by the Charge Point.

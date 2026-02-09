@@ -1,274 +1,275 @@
-# OCPI 2.3.0 - Tokens Module
-# Sender (eMSP) and Receiver (CPO) interfaces for Tokens and Real-time Authorization
 openapi: 3.1.0
 info:
   title: OCPI 2.3.0 - Tokens
-  description: >-
-    The Tokens module provides information about tokens used for charging authorization.
-    Includes real-time authorization. Data owner is typically the eMSP.
+  description: The Tokens module provides information about tokens used for charging
+    authorization. Includes real-time authorization. Data owner is typically the eMSP.
   version: 2.3.0
   license:
     name: Creative Commons Attribution-NoDerivatives 4.0 International
     url: https://creativecommons.org/licenses/by-nd/4.0/
-
 externalDocs:
   description: OCPI 2.3.0 Specification
   url: https://github.com/ocpi/ocpi
-
 servers:
-  - url: https://example.com/ocpi/2.3.0
-    description: Example OCPI server
-
+- url: https://example.com/ocpi/2.3.0
+  description: Example OCPI server
 security:
-  - TokenAuth: []
-
+- TokenAuth: []
 paths:
-  # ---- Sender Interface (eMSP) ----
-
   /tokens:
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
     get:
       operationId: getTokens
       summary: Get Tokens List (Sender)
-      description: >-
-        Fetch Token objects from the eMSP, last updated between date_from and date_to (paginated).
+      description: Fetch Token objects from the eMSP, last updated between date_from
+        and date_to (paginated).
       tags:
-        - Tokens - Sender
+      - Tokens - Sender
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - $ref: './shared/parameters.yaml#/components/parameters/date_from'
-        - $ref: './shared/parameters.yaml#/components/parameters/date_to'
-        - $ref: './shared/parameters.yaml#/components/parameters/offset'
-        - $ref: './shared/parameters.yaml#/components/parameters/limit'
+      - $ref: ./shared/parameters.yaml#/components/parameters/date_from
+      - $ref: ./shared/parameters.yaml#/components/parameters/date_to
+      - $ref: ./shared/parameters.yaml#/components/parameters/offset
+      - $ref: ./shared/parameters.yaml#/components/parameters/limit
       responses:
         '200':
           description: List of Token objects.
           headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
             X-Total-Count:
-              $ref: './shared/headers.yaml#/components/headers/X-Total-Count'
+              $ref: ./shared/headers.yaml#/components/headers/X-Total-Count
             X-Limit:
-              $ref: './shared/headers.yaml#/components/headers/X-Limit'
+              $ref: ./shared/headers.yaml#/components/headers/X-Limit
             Link:
-              $ref: './shared/headers.yaml#/components/headers/Link'
+              $ref: ./shared/headers.yaml#/components/headers/Link
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Token'
+                $ref: '#/components/schemas/TokenListResponse'
         '401':
           description: Unauthorized.
-
   /tokens/{token_uid}/authorize:
     post:
       operationId: postTokenAuthorize
       summary: Real-time Authorization (Sender)
-      description: >-
-        Perform a real-time authorization request to the eMSP, validating if a Token
-        may be used at the optionally given Location.
+      description: Perform a real-time authorization request to the eMSP, validating
+        if a Token may be used at the optionally given Location.
       tags:
-        - Tokens - Sender
+      - Tokens - Sender
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - name: token_uid
-          in: path
-          required: true
-          description: Token.uid of the Token to authorize.
-          schema:
-            type: string
-            maxLength: 36
-        - name: type
-          in: query
-          required: false
-          description: Token.type of the Token to authorize. Default if omitted is RFID.
-          schema:
-            $ref: '#/components/schemas/TokenType'
+      - name: token_uid
+        in: path
+        required: true
+        description: Token.uid of the Token to authorize.
+        schema:
+          type: string
+          maxLength: 36
+      - name: type
+        in: query
+        required: false
+        description: Token.type of the Token to authorize. Default if omitted is RFID.
+        schema:
+          $ref: ./shared/schemas/tokens.yaml#/components/schemas/TokenType
       requestBody:
         required: false
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LocationReferences'
+              $ref: ./shared/schemas/tokens.yaml#/components/schemas/LocationReferences
       responses:
         '200':
           description: Authorization result.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/AuthorizationInfo'
+                $ref: '#/components/schemas/AuthorizationInfoResponse'
         '401':
           description: Unauthorized.
         '404':
           description: Token not known by the eMSP.
-
-  # ---- Receiver Interface (CPO) ----
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
   /tokens/{country_code}/{party_id}/{token_uid}:
     get:
       operationId: getReceiverToken
       summary: Get Token (Receiver)
       description: Retrieve a Token object as stored in the Receiver's system.
       tags:
-        - Tokens - Receiver
+      - Tokens - Receiver
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
-        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
-        - name: token_uid
-          in: path
-          required: true
-          description: Token.uid of the Token to retrieve.
-          schema:
-            type: string
-            maxLength: 36
-        - name: type
-          in: query
-          required: false
-          description: Token.type of the Token to retrieve. Default if omitted is RFID.
-          schema:
-            $ref: '#/components/schemas/TokenType'
+      - $ref: ./shared/parameters.yaml#/components/parameters/country_code
+      - $ref: ./shared/parameters.yaml#/components/parameters/party_id
+      - name: token_uid
+        in: path
+        required: true
+        description: Token.uid of the Token to retrieve.
+        schema:
+          type: string
+          maxLength: 36
+      - name: type
+        in: query
+        required: false
+        description: Token.type of the Token to retrieve. Default if omitted is RFID.
+        schema:
+          $ref: ./shared/schemas/tokens.yaml#/components/schemas/TokenType
       responses:
         '200':
           description: The requested Token object.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/Token'
+                $ref: '#/components/schemas/TokenResponse'
         '401':
           description: Unauthorized.
         '404':
           description: Token not found.
-
     put:
       operationId: putReceiverToken
       summary: Push Token (Receiver)
-      description: Push a new or updated Token object to the Receiver.
+      description: Push a new or updated Token object to the Receiver. URL parameters
+        country_code and party_id SHALL match the corresponding values in the Token
+        object.
       tags:
-        - Tokens - Receiver
+      - Tokens - Receiver
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
-        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
-        - name: token_uid
-          in: path
-          required: true
-          schema:
-            type: string
-            maxLength: 36
-        - name: type
-          in: query
-          required: false
-          description: Token.type of the Token. Default if omitted is RFID.
-          schema:
-            $ref: '#/components/schemas/TokenType'
+      - $ref: ./shared/parameters.yaml#/components/parameters/country_code
+      - $ref: ./shared/parameters.yaml#/components/parameters/party_id
+      - name: token_uid
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
+      - name: type
+        in: query
+        required: false
+        description: Token.type of the Token. Default if omitted is RFID.
+        schema:
+          $ref: ./shared/schemas/tokens.yaml#/components/schemas/TokenType
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Token'
+            example:
+              country_code: DE
+              party_id: TNM
+              uid: '12345678905880'
+              type: RFID
+              contract_id: DE8ACC12E46L89
+              visual_number: DF000-2001-8999-1
+              issuer: TheNewMotion
+              group_id: DF000-2001-8999
+              valid: true
+              whitelist: ALLOWED
+              language: it
+              default_profile_type: GREEN
+              energy_contract:
+                supplier_name: Greenpeace Energy eG
+                contract_id: '0123456789'
+              last_updated: '2018-12-10T17:25:10Z'
       responses:
         '200':
           description: Token updated.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '201':
           description: Token created.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '401':
           description: Unauthorized.
-
     patch:
       operationId: patchReceiverToken
       summary: Partially Update Token (Receiver)
-      description: >-
-        Push partial updates to a Token. MUST contain last_updated.
-        Tokens cannot be deleted; use PUT to invalidate.
+      description: Push partial updates to a Token. Only fields that need to be updated
+        have to be present, fields not specified are considered unchanged. The request
+        MUST contain last_updated. Tokens cannot be deleted; use PUT or PATCH to invalidate.
       tags:
-        - Tokens - Receiver
+      - Tokens - Receiver
       parameters:
-        - $ref: './shared/headers.yaml#/components/parameters/Authorization'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Request-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/X-Correlation-ID'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-from-party-id'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-country-code'
-        - $ref: './shared/headers.yaml#/components/parameters/OCPI-to-party-id'
-        - $ref: './shared/parameters.yaml#/components/parameters/country_code'
-        - $ref: './shared/parameters.yaml#/components/parameters/party_id'
-        - name: token_uid
-          in: path
-          required: true
-          schema:
-            type: string
-            maxLength: 36
-        - name: type
-          in: query
-          required: false
-          description: Token.type of the Token. Default if omitted is RFID.
-          schema:
-            $ref: '#/components/schemas/TokenType'
+      - $ref: ./shared/parameters.yaml#/components/parameters/country_code
+      - $ref: ./shared/parameters.yaml#/components/parameters/party_id
+      - name: token_uid
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
+      - name: type
+        in: query
+        required: false
+        description: Token.type of the Token. Default if omitted is RFID.
+        schema:
+          $ref: ./shared/schemas/tokens.yaml#/components/schemas/TokenType
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              description: Partial Token object. MUST contain last_updated.
-              additionalProperties: true
+              $ref: '#/components/schemas/TokenPatch'
+            example:
+              valid: false
+              last_updated: '2018-12-10T17:25:10Z'
       responses:
         '200':
           description: Token partially updated.
+          headers:
+            X-Request-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
+            X-Correlation-ID:
+              $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
           content:
             application/json:
               schema:
-                $ref: './shared/common.yaml#/components/schemas/OcpiResponse'
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
         '401':
           description: Unauthorized.
-
+    parameters:
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
+    - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-party-id
 components:
   securitySchemes:
     TokenAuth:
@@ -277,19 +278,117 @@ components:
       name: Authorization
       description: OCPI credentials token passed in the Authorization header.
   schemas:
+    TokenResponse:
+      type: object
+      required:
+      - status_code
+      - timestamp
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Token'
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    TokenListResponse:
+      type: object
+      required:
+      - status_code
+      - timestamp
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Token'
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    AuthorizationInfoResponse:
+      type: object
+      required:
+      - status_code
+      - timestamp
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/AuthorizationInfo'
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    TokenPatch:
+      type: object
+      description: Partial Token object for PATCH. MUST contain last_updated.
+      required:
+      - last_updated
+      properties:
+        type:
+          $ref: ./shared/schemas/tokens.yaml#/components/schemas/TokenType
+        contract_id:
+          type: string
+          maxLength: 36
+        visual_number:
+          type: string
+          maxLength: 64
+        issuer:
+          type: string
+          maxLength: 64
+        group_id:
+          type: string
+          maxLength: 36
+        valid:
+          type: boolean
+        whitelist:
+          $ref: ./shared/schemas/tokens.yaml#/components/schemas/WhitelistType
+        language:
+          type: string
+          minLength: 2
+          maxLength: 2
+        default_profile_type:
+          type: string
+          maxLength: 32
+        energy_contract:
+          $ref: ./shared/schemas/tokens.yaml#/components/schemas/EnergyContract
+        last_updated:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
     Token:
       type: object
       description: Representation of a charging token.
       required:
-        - country_code
-        - party_id
-        - uid
-        - type
-        - contract_id
-        - issuer
-        - valid
-        - whitelist
-        - last_updated
+      - country_code
+      - party_id
+      - uid
+      - type
+      - contract_id
+      - issuer
+      - valid
+      - whitelist
+      - last_updated
       properties:
         country_code:
           type: string
@@ -302,15 +401,15 @@ components:
         uid:
           type: string
           maxLength: 36
-          description: >-
-            Unique ID by which this Token (combined with Token type) can be identified.
-            For RFID tokens, this is typically the RFID hidden ID.
+          description: Unique ID by which this Token (combined with Token type) can
+            be identified. For RFID tokens, this is typically the RFID hidden ID.
         type:
-          $ref: '#/components/schemas/TokenType'
+          $ref: ./shared/schemas/tokens.yaml#/components/schemas/TokenType
         contract_id:
           type: string
           maxLength: 36
-          description: Uniquely identifies the EV driver contract token within the eMSP's platform.
+          description: Uniquely identifies the EV driver contract token within the
+            eMSP's platform.
         visual_number:
           type: string
           maxLength: 64
@@ -322,108 +421,42 @@ components:
         group_id:
           type: string
           maxLength: 36
-          description: Groups multiple tokens so a session can be started with one and stopped with another.
+          description: Groups multiple tokens so a session can be started with one
+            and stopped with another.
         valid:
           type: boolean
           description: Whether this Token is valid.
         whitelist:
-          $ref: '#/components/schemas/WhitelistType'
+          $ref: ./shared/schemas/tokens.yaml#/components/schemas/WhitelistType
         language:
           type: string
           maxLength: 2
-          description: ISO 639-1 language code for the Token owner's preferred interface language.
+          description: ISO 639-1 language code for the Token owner's preferred interface
+            language.
         default_profile_type:
-          $ref: './sessions.yaml#/components/schemas/ProfileType'
+          $ref: ./sessions.yaml#/components/schemas/ProfileType
         energy_contract:
-          $ref: '#/components/schemas/EnergyContract'
+          $ref: ./shared/schemas/tokens.yaml#/components/schemas/EnergyContract
         last_updated:
-          $ref: './shared/common.yaml#/components/schemas/DateTime'
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
       additionalProperties: true
-
     AuthorizationInfo:
       type: object
       description: Information about the authorization status of a Token.
       required:
-        - allowed
-        - token
+      - allowed
+      - token
       properties:
         allowed:
-          $ref: '#/components/schemas/AllowedType'
+          $ref: ./shared/schemas/tokens.yaml#/components/schemas/AllowedType
         token:
           $ref: '#/components/schemas/Token'
         location:
-          $ref: '#/components/schemas/LocationReferences'
+          $ref: ./shared/schemas/tokens.yaml#/components/schemas/LocationReferences
         authorization_reference:
           type: string
           maxLength: 36
           description: Reference to the authorization (used in Session and CDR).
         info:
-          $ref: './shared/common.yaml#/components/schemas/DisplayText'
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DisplayText
       additionalProperties: true
-
-    LocationReferences:
-      type: object
-      description: References to a Location and specific EVSEs.
-      required:
-        - location_id
-      properties:
-        location_id:
-          type: string
-          maxLength: 36
-          description: Unique identifier for the location.
-        evse_uids:
-          type: array
-          items:
-            type: string
-            maxLength: 36
-          description: Unique identifiers for EVSEs within the given location.
-      additionalProperties: true
-
-    EnergyContract:
-      type: object
-      description: Information about an EV driver's energy supply contract.
-      required:
-        - supplier_name
-      properties:
-        supplier_name:
-          type: string
-          maxLength: 64
-          description: Name of the energy supplier for this Token.
-        contract_id:
-          type: string
-          maxLength: 64
-          description: Contract ID at the energy supplier.
-      additionalProperties: true
-
-    # ---- Enums ----
-
-    TokenType:
-      anyOf:
-        - type: string
-          enum:
-            - AD_HOC_USER
-            - APP_USER
-            - EMAID
-            - OTHER
-            - RFID
-        - type: string
-      description: Type of charging token.
-
-    WhitelistType:
-      type: string
-      enum:
-        - ALWAYS
-        - ALLOWED
-        - ALLOWED_OFFLINE
-        - NEVER
-      description: Defines the whitelist behavior for a Token.
-
-    AllowedType:
-      type: string
-      enum:
-        - ALLOWED
-        - BLOCKED
-        - EXPIRED
-        - NO_CREDIT
-        - NOT_ALLOWED
-      description: Authorization status of a Token.

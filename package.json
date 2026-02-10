@@ -16,8 +16,9 @@
     "generate:antora": "node tools/generate-antora-components.js",
     "build:antora": "npm run generate:antora && npx antora antora-playbook.yml",
     "build:redoc": "node tools/build-redoc.js",
+    "build:openapi-diff": "node tools/build-openapi-diff.js",
     "build:swagger": "node tools/build-swagger-ui.js",
-    "build:site": "npm run build:antora && npm run build:redoc && npm run build:swagger",
+    "build:site": "npm run build:antora && npm run build:redoc && npm run build:openapi-diff && npm run build:swagger",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

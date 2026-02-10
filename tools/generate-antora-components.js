@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const { OPENAPI_DIFF_BASELINES } = require('./openapi-diff-config')
 
 const ROOT_DIR = process.cwd()
 const SPECIFICATIONS_DIR = path.join(ROOT_DIR, 'specifications')
@@ -674,12 +675,55 @@ function writeLibraryPage(pagesDir, version) {
   writeFile(path.join(pagesDir, 'library.adoc'), libraryPageContent(version))
 }
 
+function availableDiffBaselines(version) {
+  const baselines = OPENAPI_DIFF_BASELINES[version] || []
+  return baselines.filter((baselineVersion) => fileExists(path.join(OPENAPI_ROOT_DIR, `ocpi-${baselineVersion}`, 'openapi.yaml')))
+}
+
+function versionApiSection(version) {
+  const targetSpec = path.join(OPENAPI_ROOT_DIR, `ocpi-${version}`, 'openapi.yaml')
+  if (!fileExists(targetSpec)) {
+    return ''
+  }
+
+  const baselines = availableDiffBaselines(version)
+  const lines = [
+    '== API Tools',
+    '',
+    `* link:/api/${version}/[API Reference (OCPI ${version})]`,
+    `* link:/api/${version}/swagger/[Swagger UI (OCPI ${version})]`,
+  ]
+
+  for (const baselineVersion of baselines) {
+    lines.push(`* link:/api/${version}/diff/vs-${baselineVersion}/[OpenAPI diff: OCPI ${version} vs ${baselineVersion}]`)
+  }
+
+  return `\n${lines.join('\n')}`
+}
+
+function apiDiffPageContent(version) {
+  const baselines = availableDiffBaselines(version)
+  const lines = ['= API Diff', '', `OpenAPI comparison pages for OCPI ${version}.`, '']
+
+  if (!baselines.length) {
+    lines.push('No OpenAPI diff baseline is configured for this version.')
+    return `${lines.join('\n')}\n`
+  }
+
+  for (const baselineVersion of baselines) {
+    lines.push(`* link:/api/${version}/diff/vs-${baselineVersion}/[OCPI ${version} vs ${baselineVersion}]`)
+  }
+
+  return `${lines.join('\n')}\n`
+}
+
+function writeApiDiffPage(pagesDir, version) {
+  writeFile(path.join(pagesDir, 'api-diff.adoc'), apiDiffPageContent(version))
+}
+
 function writeVersionHomePage(pagesDir, version) {
   const notice = deprecatedNotice(version)
-  const hasApiReference = fileExists(path.join(OPENAPI_ROOT_DIR, `ocpi-${version}`, 'openapi.yaml'))
-  const apiLinks = hasApiReference
-    ? `\nAPI Reference for this version: link:/api/${version}/[API Reference (OCPI ${version})].\nTry API for this version: link:/api/${version}/swagger/[Swagger UI (OCPI ${version})].`
-    : ''
+  const apiSection = versionApiSection(version)
   writeFile(
     path.join(pagesDir, 'index.adoc'),
     `= OCPI ${version}
@@ -687,17 +731,14 @@ function writeVersionHomePage(pagesDir, version) {
 This documentation page is generated from the OCPI \`${version}\` release branch.${notice}
 
 See xref:spec/introduction.adoc[Introduction] to start reading the specification.
-${apiLinks}
+${apiSection}
 `
   )
 }
 
 function writeFallbackHomePage(pagesDir, version) {
   const notice = deprecatedNotice(version)
-  const hasApiReference = fileExists(path.join(OPENAPI_ROOT_DIR, `ocpi-${version}`, 'openapi.yaml'))
-  const apiLinks = hasApiReference
-    ? `\nAPI Reference for this version: link:/api/${version}/[API Reference (OCPI ${version})].\nTry API for this version: link:/api/${version}/swagger/[Swagger UI (OCPI ${version})].`
-    : ''
+  const apiSection = versionApiSection(version)
   writeFile(
     path.join(pagesDir, 'index.adoc'),
     `= OCPI ${version}
@@ -705,7 +746,7 @@ function writeFallbackHomePage(pagesDir, version) {
 This version is imported from upstream, but its source files are not in AsciiDoc format.${notice}
 
 For now, this version is available as source-only under \`specifications/ocpi-${version}\`.
-${apiLinks}
+${apiSection}
 `
   )
 }
@@ -721,6 +762,7 @@ function generateComponentPages(componentDir, version, asciidocFiles) {
 
   writeVersionHomePage(pagesDir, version)
   writeLibraryPage(pagesDir, version)
+  writeApiDiffPage(pagesDir, version)
   writeCommunityPage(pagesDir)
   writeSponsorPage(pagesDir)
   writeAboutPage(pagesDir)
@@ -748,6 +790,7 @@ include::partial$src/${partialName}[]
   }
 
   navLines.push('* xref:library.adoc[Library]')
+  navLines.push('* xref:api-diff.adoc[API Diff]')
   navLines.push('* xref:community.adoc[Community]')
   navLines.push('* xref:sponsor.adoc[Sponsor]')
   navLines.push('* xref:about.adoc[About]')
@@ -763,11 +806,12 @@ function generateFallbackComponent(componentDir, version) {
 
   writeFallbackHomePage(pagesDir, version)
   writeLibraryPage(pagesDir, version)
+  writeApiDiffPage(pagesDir, version)
   writeCommunityPage(pagesDir)
   writeSponsorPage(pagesDir)
   writeAboutPage(pagesDir)
 
-  writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n* xref:library.adoc[Library]\n* xref:community.adoc[Community]\n* xref:sponsor.adoc[Sponsor]\n* xref:about.adoc[About]\n')
+  writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n* xref:library.adoc[Library]\n* xref:api-diff.adoc[API Diff]\n* xref:community.adoc[Community]\n* xref:sponsor.adoc[Sponsor]\n* xref:about.adoc[About]\n')
 }
 
 function syncVersion(versionInfo) {

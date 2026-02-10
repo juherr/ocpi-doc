@@ -55,7 +55,7 @@ Each version folder is treated as a versioned Antora content source.
 ## Antora (multi-version)
 
 The Antora playbook references all version folders and renders one site with version navigation.
-Each version includes `Home`, `Spec`, `Library`, `Community`, `Sponsor`, and `About` pages.
+Each version includes `Home`, `Spec`, `Library`, `API Diff`, `Community`, `Sponsor`, and `About` pages.
 
 ### Version status
 
@@ -86,6 +86,7 @@ Generated site output is written to `public/`.
 
 - OpenAPI sources are stored under `openapi/ocpi-x.y.z`
 - Versioned Redoc pages are generated under `public/api/<version>/`
+- OpenAPI diff pages are generated under `public/api/<version>/diff/` (for configured baselines)
 - Versioned Swagger UI pages are generated under `public/api/<version>/swagger/`
 - `/api/` redirects to the latest API version
 - Each generated API page exposes `Back to specification` to `/ocpi/<version>/index.html`
@@ -95,6 +96,7 @@ Typical API build commands:
 
 ```bash
 npm run build:redoc
+npm run build:openapi-diff
 npm run build:swagger
 ```
 

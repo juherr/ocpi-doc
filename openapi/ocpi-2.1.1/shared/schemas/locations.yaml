@@ -1,0 +1,245 @@
+openapi: 3.1.0
+info:
+  title: OCPI 2.1.1 - Shared Location Classes
+  version: 2.1.1
+paths: {}
+components:
+  schemas:
+    GeoLocation:
+      type: object
+      description: Geographic coordinates (WGS 84).
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: string
+          maxLength: 10
+          description: Latitude in decimal degree (e.g. "50.770774").
+          pattern: ^-?[0-9]{1,2}\.[0-9]{1,8}$
+        longitude:
+          type: string
+          maxLength: 11
+          description: Longitude in decimal degree (e.g. "-126.104965").
+          pattern: ^-?[0-9]{1,3}\.[0-9]{1,8}$
+      additionalProperties: true
+    AdditionalGeoLocation:
+      type: object
+      description: An additional geographic location with an optional human-readable name.
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: string
+          maxLength: 10
+          description: Latitude in decimal degree.
+        longitude:
+          type: string
+          maxLength: 11
+          description: Longitude in decimal degree.
+        name:
+          $ref: ./types.yaml#/components/schemas/DisplayText
+      additionalProperties: true
+    BusinessDetails:
+      type: object
+      description: Details of an operator, owner, or suboperator.
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          description: Name of the operator/owner/suboperator.
+        website:
+          type: string
+          format: uri
+          maxLength: 255
+          description: Link to website of the operator.
+        logo:
+          $ref: "#/components/schemas/Image"
+      additionalProperties: true
+    Image:
+      type: object
+      description: Reference to an image with metadata.
+      required:
+        - url
+        - category
+        - type
+      properties:
+        url:
+          type: string
+          format: uri
+          maxLength: 255
+          description: URL from where the image data can be fetched.
+        thumbnail:
+          type: string
+          format: uri
+          maxLength: 255
+          description: URL from where a thumbnail of the image can be fetched.
+        category:
+          $ref: "#/components/schemas/ImageCategory"
+        type:
+          type: string
+          maxLength: 4
+          description: Image type (e.g. gif, jpeg, png, svg).
+        width:
+          type: integer
+          description: Width of the full-scale image.
+        height:
+          type: integer
+          description: Height of the full-scale image.
+      additionalProperties: true
+    Hours:
+      type: object
+      description: Opening and access hours.
+      required:
+        - twentyfourseven
+      properties:
+        twentyfourseven:
+          type: boolean
+          description: True to represent 24/7, with the exception of the optional
+            exceptional_openings/closings.
+        regular_hours:
+          type: array
+          items:
+            $ref: "#/components/schemas/RegularHours"
+          description: Regular hours, weekday-based. Only to be used if twentyfourseven is
+            false.
+        exceptional_openings:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExceptionalPeriod"
+          description: Exceptions for specified calendar dates when the EVSE is operating.
+        exceptional_closings:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExceptionalPeriod"
+          description: Exceptions for specified calendar dates when the EVSE is not
+            operating.
+      additionalProperties: true
+    RegularHours:
+      type: object
+      description: Regular recurring operation or access hours.
+      required:
+        - weekday
+        - period_begin
+        - period_end
+      properties:
+        weekday:
+          type: integer
+          minimum: 1
+          maximum: 7
+          description: Day of the week, 1=Monday, 7=Sunday.
+        period_begin:
+          type: string
+          maxLength: 5
+          pattern: ^[0-2][0-9]:[0-5][0-9]$
+          description: Begin of the regular period (HH:MM, 24h format).
+        period_end:
+          type: string
+          maxLength: 5
+          pattern: ^[0-2][0-9]:[0-5][0-9]$
+          description: End of the regular period (HH:MM, 24h format).
+      additionalProperties: true
+    ExceptionalPeriod:
+      type: object
+      description: Specifies one exceptional period for operating hours.
+      required:
+        - period_begin
+        - period_end
+      properties:
+        period_begin:
+          $ref: ./types.yaml#/components/schemas/DateTime
+        period_end:
+          $ref: ./types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    EnergyMix:
+      type: object
+      description: Details about the energy supplied at this location.
+      required:
+        - is_green_energy
+      properties:
+        is_green_energy:
+          type: boolean
+          description: True if 100% from regenerative sources.
+        energy_sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/EnergySource"
+          description: Key-value pairs of energy sources.
+        environ_impact:
+          type: array
+          items:
+            $ref: "#/components/schemas/EnvironmentalImpact"
+          description: Key-value pairs of environmental impact values.
+        supplier_name:
+          type: string
+          maxLength: 64
+          description: Name of the energy supplier.
+        energy_product_name:
+          type: string
+          maxLength: 64
+          description: Name of the energy product/tariff.
+      additionalProperties: true
+    EnergySource:
+      type: object
+      description: Breakdown of energy from a specific source.
+      required:
+        - source
+        - percentage
+      properties:
+        source:
+          $ref: "#/components/schemas/EnergySourceCategory"
+        percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Percentage of this source in the energy mix (0-100).
+      additionalProperties: true
+    EnvironmentalImpact:
+      type: object
+      description: Amount of environmental waste produced.
+      required:
+        - category
+        - amount
+      properties:
+        category:
+          $ref: "#/components/schemas/EnvironmentalImpactCategory"
+        amount:
+          type: number
+          description: Amount of this environmental impact in g/kWh.
+      additionalProperties: true
+    ImageCategory:
+      anyOf:
+        - type: string
+          enum:
+            - CHARGER
+            - ENTRANCE
+            - LOCATION
+            - NETWORK
+            - OPERATOR
+            - OTHER
+            - OWNER
+        - type: string
+      description: The category of an image to obtain the correct usage.
+    EnergySourceCategory:
+      type: string
+      enum:
+        - NUCLEAR
+        - GENERAL_FOSSIL
+        - COAL
+        - GAS
+        - GENERAL_GREEN
+        - SOLAR
+        - WIND
+        - WATER
+      description: Categories of energy sources.
+    EnvironmentalImpactCategory:
+      anyOf:
+        - type: string
+          enum:
+            - NUCLEAR_WASTE
+            - CARBON_DIOXIDE
+        - type: string
+      description: Categories of environmental impact values.

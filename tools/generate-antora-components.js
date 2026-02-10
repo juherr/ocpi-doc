@@ -4,6 +4,7 @@ const path = require('path')
 const ROOT_DIR = process.cwd()
 const SPECIFICATIONS_DIR = path.join(ROOT_DIR, 'specifications')
 const OUTPUT_ROOT = path.join(ROOT_DIR, 'antora', 'components')
+const OPENAPI_ROOT_DIR = path.join(ROOT_DIR, 'openapi')
 
 const IGNORE_DOC_FILES = new Set([
   'pdf_layout.asciidoc',
@@ -671,6 +672,10 @@ function writeLibraryPage(pagesDir, version) {
 
 function writeVersionHomePage(pagesDir, version) {
   const notice = deprecatedNotice(version)
+  const hasApiReference = fileExists(path.join(OPENAPI_ROOT_DIR, `ocpi-${version}`, 'openapi.yaml'))
+  const apiLinks = hasApiReference
+    ? `\nAPI Reference for this version: link:/api/${version}/[API Reference (OCPI ${version})].\nTry API for this version: link:/api/${version}/swagger/[Swagger UI (OCPI ${version})].`
+    : ''
   writeFile(
     path.join(pagesDir, 'index.adoc'),
     `= OCPI ${version}
@@ -678,13 +683,17 @@ function writeVersionHomePage(pagesDir, version) {
 This documentation page is generated from the OCPI \`${version}\` release branch.${notice}
 
 See xref:spec/introduction.adoc[Introduction] to start reading the specification.
-API Reference for this version: link:/api/${version}/[API Reference (OCPI ${version})].
+${apiLinks}
 `
   )
 }
 
 function writeFallbackHomePage(pagesDir, version) {
   const notice = deprecatedNotice(version)
+  const hasApiReference = fileExists(path.join(OPENAPI_ROOT_DIR, `ocpi-${version}`, 'openapi.yaml'))
+  const apiLinks = hasApiReference
+    ? `\nAPI Reference for this version: link:/api/${version}/[API Reference (OCPI ${version})].\nTry API for this version: link:/api/${version}/swagger/[Swagger UI (OCPI ${version})].`
+    : ''
   writeFile(
     path.join(pagesDir, 'index.adoc'),
     `= OCPI ${version}
@@ -692,6 +701,7 @@ function writeFallbackHomePage(pagesDir, version) {
 This version is imported from upstream, but its source files are not in AsciiDoc format.${notice}
 
 For now, this version is available as source-only under \`specifications/ocpi-${version}\`.
+${apiLinks}
 `
   )
 }

@@ -47,6 +47,7 @@ specifications/
   ocpi-2.3.0/
   ocpi-2.2.1/
   ocpi-2.2.0/
+  ocpi-2.1.1/
 ```
 
 Each version folder is treated as a versioned Antora content source.
@@ -96,6 +97,8 @@ Typical API build commands:
 npm run build:redoc
 npm run build:swagger
 ```
+
+`npm run build:swagger` auto-detects every `openapi/ocpi-x.y.z/` directory and generates one Swagger UI page per version.
 
 `npm run build:site` builds Antora + Redoc + Swagger UI into `public/`.
 

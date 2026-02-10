@@ -81,7 +81,21 @@ function bundleOpenApiYaml(inputYamlPath, outputYamlPath) {
   execSync(cmd, { stdio: "inherit" });
 }
 
-function normalizeHeaderGroupingInBundle(outputYamlPath) {
+function isLegacyVersionWithoutRoutingHeaders(version) {
+  const parts = String(version).split(".").map((p) => Number.parseInt(p, 10) || 0);
+  const [major, minor, patch] = parts;
+  if (major < 2) return true;
+  if (major > 2) return false;
+  if (minor < 2) return true;
+  if (minor > 2) return false;
+  return patch <= 1;
+}
+
+function normalizeHeaderGroupingInBundle(outputYamlPath, version) {
+  if (isLegacyVersionWithoutRoutingHeaders(version)) {
+    return;
+  }
+
   const doc = YAML.parse(fs.readFileSync(outputYamlPath, "utf8"));
   const paths = doc.paths || {};
   const components = doc.components || {};
@@ -386,7 +400,7 @@ function main() {
     // 2) Bundle the root spec to avoid $ref HTTP resolution issues in browsers
     const outSpec = path.join(outDir, "openapi.yaml");
     bundleOpenApiYaml(srcRootSpec, outSpec);
-    normalizeHeaderGroupingInBundle(outSpec);
+    normalizeHeaderGroupingInBundle(outSpec, version);
 
     // (Optional) keep a copy of the raw root spec (with refs) for debugging
     // fs.copyFileSync(srcRootSpec, path.join(outDir, "openapi.raw.yaml"));

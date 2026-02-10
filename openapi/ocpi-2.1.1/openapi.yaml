@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info:
+  title: OCPI 2.1.1 API
+  version: 2.1.1
+  license:
+    name: Creative Commons Attribution-NoDerivatives 4.0 International
+    url: https://creativecommons.org/licenses/by-nd/4.0/
+security:
+  - TokenAuth: []
+paths:
+  /cdrs:
+    $ref: ./cdrs.yaml#/paths/~1cdrs
+  /cdrs/{cdr_id}:
+    $ref: ./cdrs.yaml#/paths/~1cdrs~1{cdr_id}
+  /commands/RESERVE_NOW:
+    $ref: ./commands.yaml#/paths/~1commands~1RESERVE_NOW
+  /commands/START_SESSION:
+    $ref: ./commands.yaml#/paths/~1commands~1START_SESSION
+  /commands/STOP_SESSION:
+    $ref: ./commands.yaml#/paths/~1commands~1STOP_SESSION
+  /commands/UNLOCK_CONNECTOR:
+    $ref: ./commands.yaml#/paths/~1commands~1UNLOCK_CONNECTOR
+  /credentials:
+    $ref: ./credentials.yaml#/paths/~1credentials
+  /locations:
+    $ref: ./locations.yaml#/paths/~1locations
+  /locations/{location_id}:
+    $ref: ./locations.yaml#/paths/~1locations~1{location_id}
+  /locations/{location_id}/{evse_uid}:
+    $ref: ./locations.yaml#/paths/~1locations~1{location_id}~1{evse_uid}
+  /locations/{location_id}/{evse_uid}/{connector_id}:
+    $ref: ./locations.yaml#/paths/~1locations~1{location_id}~1{evse_uid}~1{connector_id}
+  /locations/{country_code}/{party_id}/{location_id}:
+    $ref: ./locations.yaml#/paths/~1locations~1{country_code}~1{party_id}~1{location_id}
+  /locations/{country_code}/{party_id}/{location_id}/{evse_uid}:
+    $ref: ./locations.yaml#/paths/~1locations~1{country_code}~1{party_id}~1{location_id}~1{evse_uid}
+  /locations/{country_code}/{party_id}/{location_id}/{evse_uid}/{connector_id}:
+    $ref: ./locations.yaml#/paths/~1locations~1{country_code}~1{party_id}~1{location_id}~1{evse_uid}~1{connector_id}
+  /sessions:
+    $ref: ./sessions.yaml#/paths/~1sessions
+  /sessions/{country_code}/{party_id}/{session_id}:
+    $ref: ./sessions.yaml#/paths/~1sessions~1{country_code}~1{party_id}~1{session_id}
+  /tariffs:
+    $ref: ./tariffs.yaml#/paths/~1tariffs
+  /tariffs/{country_code}/{party_id}/{tariff_id}:
+    $ref: ./tariffs.yaml#/paths/~1tariffs~1{country_code}~1{party_id}~1{tariff_id}
+  /tokens:
+    $ref: ./tokens.yaml#/paths/~1tokens
+  /tokens/{token_uid}/authorize:
+    $ref: ./tokens.yaml#/paths/~1tokens~1{token_uid}~1authorize
+  /tokens/{country_code}/{party_id}/{token_uid}:
+    $ref: ./tokens.yaml#/paths/~1tokens~1{country_code}~1{party_id}~1{token_uid}
+  /versions:
+    $ref: ./versions.yaml#/paths/~1versions
+  /versions/{version}:
+    $ref: ./versions.yaml#/paths/~1versions~1{version}
+webhooks:
+  command-result:
+    $ref: ./commands.yaml#/webhooks/commandResult
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: OCPI credentials token passed in the Authorization header.

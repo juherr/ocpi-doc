@@ -1,0 +1,27 @@
+openapi: 3.1.0
+info:
+  title: OCPI 2.1.1 - Shared Headers
+  version: 2.1.1
+paths: {}
+components:
+  headers:
+    X-Total-Count:
+      description: The total number of objects available in the server system that
+        match the given query (including query parameters such as date_from and
+        date_to but excluding limit and offset).
+      schema:
+        type: integer
+      required: false
+    X-Limit:
+      description: The maximum number of objects that the server can return. This is
+        an upper limit; fewer objects may be returned if not enough remain.
+      schema:
+        type: integer
+      required: false
+    Link:
+      description: "Link to the 'next' page. Provided when this is NOT the last page.
+        Contains any filters present in the original request. Format: <URL>;
+        rel=\"next\""
+      schema:
+        type: string
+      required: false

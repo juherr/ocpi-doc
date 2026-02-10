@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info:
+  title: OCPI 2.1.1 - Shared Token Classes
+  version: 2.1.1
+paths: {}
+components:
+  schemas:
+    LocationReferences:
+      type: object
+      description: References to a Location and specific EVSEs.
+      required:
+        - location_id
+      properties:
+        location_id:
+          type: string
+          maxLength: 36
+          description: Unique identifier for the location.
+        evse_uids:
+          type: array
+          items:
+            type: string
+            maxLength: 36
+          description: Unique identifiers for EVSEs within the given location.
+      additionalProperties: true
+    EnergyContract:
+      type: object
+      description: Information about an EV driver's energy supply contract.
+      required:
+        - supplier_name
+      properties:
+        supplier_name:
+          type: string
+          maxLength: 64
+          description: Name of the energy supplier for this Token.
+        contract_id:
+          type: string
+          maxLength: 64
+          description: Contract ID at the energy supplier.
+      additionalProperties: true
+    TokenType:
+      anyOf:
+        - type: string
+          enum:
+            - AD_HOC_USER
+            - APP_USER
+            - OTHER
+            - RFID
+        - type: string
+      description: Type of charging token.
+    WhitelistType:
+      type: string
+      enum:
+        - ALWAYS
+        - ALLOWED
+        - ALLOWED_OFFLINE
+        - NEVER
+      description: Defines the whitelist behavior for a Token.
+    AllowedType:
+      type: string
+      enum:
+        - ALLOWED
+        - BLOCKED
+        - EXPIRED
+        - NO_CREDIT
+        - NOT_ALLOWED
+      description: Authorization status of a Token.

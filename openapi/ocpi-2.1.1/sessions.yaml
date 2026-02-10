@@ -1,0 +1,343 @@
+openapi: 3.1.0
+info:
+  title: OCPI 2.1.1 - Sessions
+  description: The Sessions module provides information about ongoing and
+    completed charging sessions. Data owner is typically the CPO.
+  version: 2.1.1
+  license:
+    name: Creative Commons Attribution-NoDerivatives 4.0 International
+    url: https://creativecommons.org/licenses/by-nd/4.0/
+externalDocs:
+  description: OCPI 2.1.1 Specification
+  url: https://github.com/ocpi/ocpi
+servers:
+  - url: https://example.com/ocpi/2.1.1
+    description: Example OCPI server
+security:
+  - TokenAuth: []
+paths:
+  /sessions:
+    get:
+      operationId: getSessions
+      summary: Get Sessions List (CPO Interface)
+      description: Fetch Session objects from the CPO, last updated between date_from
+        and date_to (paginated).
+      tags:
+        - Sessions - CPO Interface
+      parameters:
+        - $ref: ./shared/parameters.yaml#/components/parameters/date_from
+        - $ref: ./shared/parameters.yaml#/components/parameters/date_to
+        - $ref: ./shared/parameters.yaml#/components/parameters/offset
+        - $ref: ./shared/parameters.yaml#/components/parameters/limit
+      responses:
+        "200":
+          description: List of Session objects.
+          headers:
+            X-Total-Count:
+              $ref: ./shared/headers.yaml#/components/headers/X-Total-Count
+            X-Limit:
+              $ref: ./shared/headers.yaml#/components/headers/X-Limit
+            Link:
+              $ref: ./shared/headers.yaml#/components/headers/Link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionListResponse"
+        "401":
+          description: Unauthorized.
+  /sessions/{country_code}/{party_id}/{session_id}:
+    get:
+      operationId: getReceiverSession
+      summary: Get Session (eMSP Interface)
+      description: Retrieve a Session object as stored in the eMSP's system.
+      tags:
+        - Sessions - eMSP Interface
+      parameters:
+        - $ref: ./shared/parameters.yaml#/components/parameters/country_code
+        - $ref: ./shared/parameters.yaml#/components/parameters/party_id
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      responses:
+        "200":
+          description: The requested Session object.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+        "401":
+          description: Unauthorized.
+        "404":
+          description: Session not found.
+    put:
+      operationId: putReceiverSession
+      summary: Push Session (eMSP Interface)
+      description: Push a new or updated Session object to the eMSP. A new Session
+        replaces any existing Session. charging_periods from new Session replace
+        old ones.
+      tags:
+        - Sessions - eMSP Interface
+      parameters:
+        - $ref: ./shared/parameters.yaml#/components/parameters/country_code
+        - $ref: ./shared/parameters.yaml#/components/parameters/party_id
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Session"
+            example:
+              country_code: BE
+              party_id: BEC
+              id: "101"
+              start_date_time: 2015-06-29T22:39:09Z
+              end_date_time: 2015-06-29T23:50:16Z
+              kwh: 41.12
+              cdr_token:
+                country_code: NL
+                party_id: TST
+                uid: 123abc
+                type: RFID
+                contract_id: NL-TST-C12345678-S
+              auth_method: WHITELIST
+              location_id: LOC1
+              evse_uid: "3256"
+              connector_id: "1"
+              currency: EUR
+              status: COMPLETED
+              last_updated: 2015-06-29T23:50:17Z
+      responses:
+        "200":
+          description: Session updated.
+          content:
+            application/json:
+              schema:
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
+        "201":
+          description: Session created.
+          content:
+            application/json:
+              schema:
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
+        "401":
+          description: Unauthorized.
+    patch:
+      operationId: patchReceiverSession
+      summary: Partially Update Session (eMSP Interface)
+      description: "Push partial updates to a Session. Only fields/objects that need
+        to be updated have to be present; fields/objects not specified are
+        considered unchanged. The request MUST contain last_updated. For
+        charging_periods: acts as a request to add ChargingPeriod objects. To
+        replace or remove charging_periods, use PUT instead."
+      tags:
+        - Sessions - eMSP Interface
+      parameters:
+        - $ref: ./shared/parameters.yaml#/components/parameters/country_code
+        - $ref: ./shared/parameters.yaml#/components/parameters/party_id
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionPatch"
+            example:
+              total_cost:
+                excl_vat: 0.6
+                incl_vat: 0.66
+              last_updated: 2019-06-23T08:11:00Z
+      responses:
+        "200":
+          description: Session partially updated.
+          content:
+            application/json:
+              schema:
+                $ref: ./shared/common.yaml#/components/schemas/OcpiResponse
+        "401":
+          description: Unauthorized.
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: OCPI credentials token passed in the Authorization header.
+  schemas:
+    SessionResponse:
+      type: object
+      required:
+        - status_code
+        - timestamp
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/Session"
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    SessionListResponse:
+      type: object
+      required:
+        - status_code
+        - timestamp
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Session"
+        status_code:
+          type: integer
+          description: OCPI status code (1xxx=success, 2xxx=client error, 3xxx=server
+            error, 4xxx=hub error).
+          example: 1000
+        status_message:
+          type: string
+          description: An optional status message which may help when debugging.
+        timestamp:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    SessionPatch:
+      type: object
+      description: Partial Session object for PATCH. MUST contain last_updated.
+      required:
+        - last_updated
+      properties:
+        end_date_time:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+        kwh:
+          type: number
+        cdr_token:
+          $ref: ./shared/schemas/cdrs.yaml#/components/schemas/CdrToken
+        auth_method:
+          $ref: ./shared/schemas/cdrs.yaml#/components/schemas/AuthMethod
+        authorization_reference:
+          type: string
+          maxLength: 36
+        meter_id:
+          type: string
+          maxLength: 255
+        currency:
+          type: string
+          maxLength: 3
+        charging_periods:
+          type: array
+          items:
+            $ref: ./shared/schemas/cdrs.yaml#/components/schemas/ChargingPeriod
+        total_cost:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/Price
+        status:
+          $ref: "#/components/schemas/SessionStatus"
+        last_updated:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    Session:
+      type: object
+      description: Describes one charging session. Does not require energy transfer.
+      required:
+        - country_code
+        - party_id
+        - id
+        - start_date_time
+        - kwh
+        - cdr_token
+        - auth_method
+        - location_id
+        - evse_uid
+        - connector_id
+        - currency
+        - status
+        - last_updated
+      properties:
+        country_code:
+          type: string
+          maxLength: 2
+          description: ISO-3166 alpha-2 country code of the CPO that owns this Session.
+        party_id:
+          type: string
+          maxLength: 3
+          description: ID of the CPO that owns this Session.
+        id:
+          type: string
+          maxLength: 36
+          description: Unique ID of the charging session in the CPO platform.
+        start_date_time:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+        end_date_time:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+        kwh:
+          type: number
+          description: How many kWh were charged.
+        cdr_token:
+          $ref: ./shared/schemas/cdrs.yaml#/components/schemas/CdrToken
+        auth_method:
+          $ref: ./shared/schemas/cdrs.yaml#/components/schemas/AuthMethod
+        authorization_reference:
+          type: string
+          maxLength: 36
+          description: Reference to the authorization given by the eMSP.
+        location_id:
+          type: string
+          maxLength: 36
+          description: Location.id where the charging session is/was happening.
+        evse_uid:
+          type: string
+          maxLength: 36
+          description: EVSE.uid of the EVSE. Can be '#NA' for reservation without assigned
+            EVSE.
+        connector_id:
+          type: string
+          maxLength: 36
+          description: Connector.id of the Connector. Can be '#NA' for reservation without
+            assigned connector.
+        meter_id:
+          type: string
+          maxLength: 255
+          description: Optional identification of the kWh meter.
+        currency:
+          type: string
+          maxLength: 3
+          description: ISO-4217 code of the currency used for this session.
+        charging_periods:
+          type: array
+          items:
+            $ref: ./shared/schemas/cdrs.yaml#/components/schemas/ChargingPeriod
+          description: List of Charging Periods to calculate/verify total cost.
+        total_cost:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/Price
+        status:
+          $ref: "#/components/schemas/SessionStatus"
+        last_updated:
+          $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
+      additionalProperties: true
+    SessionStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - COMPLETED
+        - INVALID
+        - PENDING
+        - RESERVATION
+      description: The status of a charging session.

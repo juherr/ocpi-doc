@@ -528,9 +528,13 @@ function communityPageContent() {
 
 Find where OCPI practitioners discuss implementations, tooling, and interoperability.
 
+== Official resources
+
+* https://ocpi-protocol.com/[OCPI Protocol] - official OCPI protocol website and project information.
+* https://evroaming.org[EV Roaming Foundation] - governance and ecosystem organization.
+
 == Join the community
 
-* https://evroaming.org[EV Roaming Foundation] - official ecosystem and governance resources.
 * https://www.reddit.com/r/ocpi/[Reddit: r/ocpi] - open community discussions.
 * https://ocpi.slack.com[OCPI Slack] - real-time discussions with implementers.
 * https://discord.gg/kd7dtcZkmt[Discord: EV Devs and Data] - developer-focused chat and data topics.

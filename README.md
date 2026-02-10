@@ -54,7 +54,7 @@ Each version folder is treated as a versioned Antora content source.
 ## Antora (multi-version)
 
 The Antora playbook references all version folders and renders one site with version navigation.
-Each version includes `Home`, `Spec`, `Library`, `Community`, and `About` pages.
+Each version includes `Home`, `Spec`, `Library`, `Community`, `Sponsor`, and `About` pages.
 
 ### Version status
 

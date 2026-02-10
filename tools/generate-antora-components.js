@@ -540,6 +540,33 @@ function writeCommunityPage(pagesDir) {
   writeFile(path.join(pagesDir, 'community.adoc'), `${communityPageContent()}\n`)
 }
 
+function sponsorPageContent() {
+  return `= Sponsor
+
+This site is built by and for the OCPI community.
+
+It highlights the official OCPI documentation and brings together useful libraries, tools, services, and community resources for implementers, maintainers, and interoperability teams across eMobility.
+
+If this site and its content save you time, reduce integration friction, or support your day-to-day work with OCPI, sponsoring is a practical way to keep this resource accurate, maintained, and freely available.
+
+Your sponsorship directly funds:
+
+* maintenance time and updates for this website;
+* hosting and infrastructure costs.
+
+Sponsors may be featured on this page as supporters of this independent project.
+
+[.sponsor-cta]
+https://github.com/sponsors/juherr[Become a sponsor]
+
+All sponsorship plans, billing, and management are handled through GitHub Sponsors.
+`
+}
+
+function writeSponsorPage(pagesDir) {
+  writeFile(path.join(pagesDir, 'sponsor.adoc'), `${sponsorPageContent()}\n`)
+}
+
 function compareLibraries(a, b) {
   const tech = a.technology.localeCompare(b.technology)
   if (tech !== 0) {
@@ -681,6 +708,7 @@ function generateComponentPages(componentDir, version, asciidocFiles) {
   writeVersionHomePage(pagesDir, version)
   writeLibraryPage(pagesDir, version)
   writeCommunityPage(pagesDir)
+  writeSponsorPage(pagesDir)
   writeAboutPage(pagesDir)
 
   const navLines = ['* xref:index.adoc[Home]', '* Spec']
@@ -707,6 +735,7 @@ include::partial$src/${partialName}[]
 
   navLines.push('* xref:library.adoc[Library]')
   navLines.push('* xref:community.adoc[Community]')
+  navLines.push('* xref:sponsor.adoc[Sponsor]')
   navLines.push('* xref:about.adoc[About]')
 
   writeFile(path.join(moduleRoot, 'nav.adoc'), `${navLines.join('\n')}\n`)
@@ -721,9 +750,10 @@ function generateFallbackComponent(componentDir, version) {
   writeFallbackHomePage(pagesDir, version)
   writeLibraryPage(pagesDir, version)
   writeCommunityPage(pagesDir)
+  writeSponsorPage(pagesDir)
   writeAboutPage(pagesDir)
 
-  writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n* xref:library.adoc[Library]\n* xref:community.adoc[Community]\n* xref:about.adoc[About]\n')
+  writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n* xref:library.adoc[Library]\n* xref:community.adoc[Community]\n* xref:sponsor.adoc[Sponsor]\n* xref:about.adoc[About]\n')
 }
 
 function syncVersion(versionInfo) {

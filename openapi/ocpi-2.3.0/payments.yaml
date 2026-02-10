@@ -34,10 +34,12 @@ paths:
         '200':
           description: List of Terminal objects.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
+            # Pagination headers
             X-Total-Count:
               $ref: ./shared/headers.yaml#/components/headers/X-Total-Count
             X-Limit:
@@ -51,8 +53,10 @@ paths:
         '401':
           description: Unauthorized.
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
@@ -76,6 +80,7 @@ paths:
         '200':
           description: The requested Terminal object.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -127,6 +132,7 @@ paths:
         '200':
           description: Terminal updated.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -165,6 +171,7 @@ paths:
         '200':
           description: Terminal partially updated.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -176,8 +183,10 @@ paths:
         '401':
           description: Unauthorized.
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
@@ -199,6 +208,7 @@ paths:
         '200':
           description: Terminal activated.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -210,8 +220,10 @@ paths:
         '401':
           description: Unauthorized.
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
@@ -234,6 +246,7 @@ paths:
         '200':
           description: Terminal deactivated.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -245,8 +258,10 @@ paths:
         '401':
           description: Unauthorized.
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
@@ -268,6 +283,7 @@ paths:
         '201':
           description: Terminal created.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -279,8 +295,10 @@ paths:
         '401':
           description: Unauthorized.
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
@@ -303,6 +321,7 @@ paths:
         '200':
           description: The requested Terminal object.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -316,8 +335,10 @@ paths:
         '404':
           description: Terminal not found.
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
@@ -339,10 +360,12 @@ paths:
         '200':
           description: List of FinancialAdviceConfirmation objects.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
+            # Pagination headers
             X-Total-Count:
               $ref: ./shared/headers.yaml#/components/headers/X-Total-Count
             X-Limit:
@@ -356,8 +379,10 @@ paths:
         '401':
           description: Unauthorized.
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
@@ -381,6 +406,7 @@ paths:
         '200':
           description: The requested FinancialAdviceConfirmation.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -394,8 +420,10 @@ paths:
         '404':
           description: FAC not found.
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
@@ -418,6 +446,7 @@ paths:
         '201':
           description: FAC created.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -429,8 +458,10 @@ paths:
         '401':
           description: Unauthorized.
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
@@ -453,6 +484,7 @@ paths:
         '200':
           description: The requested FinancialAdviceConfirmation.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -466,8 +498,10 @@ paths:
         '404':
           description: FAC not found.
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code

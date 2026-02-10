@@ -1,0 +1,219 @@
+openapi: 3.1.0
+info:
+  title: OCPI 2.2.1 - Shared CDR Classes
+  version: 2.2.1
+
+paths: {}
+
+components:
+  schemas:
+    CdrToken:
+      type: object
+      description: Identifies the token used to start a charging session in a CDR.
+      required:
+        - country_code
+        - party_id
+        - uid
+        - type
+        - contract_id
+      properties:
+        country_code:
+          type: string
+          maxLength: 2
+          description: ISO-3166 alpha-2 country code of the eMSP that owns this Token.
+        party_id:
+          type: string
+          maxLength: 3
+          description: ID of the eMSP that owns this Token.
+        uid:
+          type: string
+          maxLength: 36
+          description: Unique ID by which this Token can be identified.
+        type:
+          $ref: './tokens.yaml#/components/schemas/TokenType'
+        contract_id:
+          type: string
+          maxLength: 36
+          description: Uniquely identifies the EV driver contract token within the eMSP's platform.
+      additionalProperties: true
+
+    CdrLocation:
+      type: object
+      description: Snapshot of the Location where the charging session took place.
+      required:
+        - id
+        - address
+        - city
+        - country
+        - coordinates
+        - evse_uid
+        - evse_id
+        - connector_id
+        - connector_standard
+        - connector_format
+        - connector_power_type
+      properties:
+        id:
+          type: string
+          maxLength: 36
+          description: Uniquely identifies the Location within the CPO's platform.
+        name:
+          type: string
+          maxLength: 255
+          description: Display name of the location.
+        address:
+          type: string
+          maxLength: 45
+          description: Street/block name and house number.
+        city:
+          type: string
+          maxLength: 45
+          description: City or town.
+        postal_code:
+          type: string
+          maxLength: 10
+          description: Postal code.
+        state:
+          type: string
+          maxLength: 20
+          description: State or province.
+        country:
+          type: string
+          maxLength: 3
+          description: ISO 3166-1 alpha-3 country code.
+        coordinates:
+          $ref: './locations.yaml#/components/schemas/GeoLocation'
+        evse_uid:
+          type: string
+          maxLength: 36
+          description: Uniquely identifies the EVSE within the CPO's platform.
+        evse_id:
+          type: string
+          maxLength: 48
+          description: Compliant with eMA ID specification.
+        connector_id:
+          type: string
+          maxLength: 36
+          description: Identifier of the connector within the EVSE.
+        connector_standard:
+          $ref: '../../locations.yaml#/components/schemas/ConnectorType'
+        connector_format:
+          $ref: '../../locations.yaml#/components/schemas/ConnectorFormat'
+        connector_power_type:
+          $ref: '../../locations.yaml#/components/schemas/PowerType'
+      additionalProperties: true
+
+    ChargingPeriod:
+      type: object
+      description: >-
+        A Charging Period is a group of values for a period of time during a charging session.
+        A new period SHOULD be added every time a Price Component becomes active.
+      required:
+        - start_date_time
+        - dimensions
+      properties:
+        start_date_time:
+          $ref: './types.yaml#/components/schemas/DateTime'
+        dimensions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/CdrDimension'
+          description: List of relevant values for this charging period.
+        tariff_id:
+          type: string
+          maxLength: 36
+          description: Unique identifier of the Tariff relevant for this Charging Period.
+      additionalProperties: true
+
+    CdrDimension:
+      type: object
+      description: A measured dimension value for a charging period.
+      required:
+        - type
+        - volume
+      properties:
+        type:
+          $ref: '#/components/schemas/CdrDimensionType'
+        volume:
+          type: number
+          description: Volume of the dimension consumed.
+      additionalProperties: true
+
+    SignedData:
+      type: object
+      description: Signed meter data for transparency and verification.
+      required:
+        - encoding_method
+        - signed_values
+      properties:
+        encoding_method:
+          type: string
+          maxLength: 36
+          description: The name of the encoding used in the SignedData field.
+        encoding_method_version:
+          type: integer
+          description: Version of the EncodingMethod.
+        public_key:
+          type: string
+          maxLength: 512
+          description: Public key used to sign the data, base64 encoded.
+        signed_values:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/SignedValue'
+          description: One or more signed values.
+        url:
+          type: string
+          maxLength: 512
+          description: URL to verify the signed data.
+      additionalProperties: true
+
+    SignedValue:
+      type: object
+      description: A single signed meter value.
+      required:
+        - nature
+        - plain_data
+        - signed_data
+      properties:
+        nature:
+          type: string
+          maxLength: 32
+          description: "Nature of the value: Start, End, Intermediate, or other."
+        plain_data:
+          type: string
+          maxLength: 512
+          description: The un-encoded string of data.
+        signed_data:
+          type: string
+          maxLength: 5000
+          description: Blob of signed data, base64 encoded.
+      additionalProperties: true
+
+    AuthMethod:
+      type: string
+      enum:
+        - AUTH_REQUEST
+        - COMMAND
+        - WHITELIST
+      description: Method used to authenticate a charging session.
+
+    CdrDimensionType:
+      type: string
+      enum:
+        - CURRENT
+        - ENERGY
+        - ENERGY_EXPORT
+        - ENERGY_IMPORT
+        - MAX_CURRENT
+        - MIN_CURRENT
+        - MAX_POWER
+        - MIN_POWER
+        - PARKING_TIME
+        - POWER
+        - RESERVATION_TIME
+        - STATE_OF_CHARGE
+        - TIME
+      description: Types of CDR dimensions.

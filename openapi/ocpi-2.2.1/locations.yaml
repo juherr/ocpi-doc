@@ -1,17 +1,17 @@
 openapi: 3.1.0
 info:
-  title: OCPI 2.3.0 - Locations
+  title: OCPI 2.2.1 - Locations
   description: The Locations module provides information about charging locations,
-    EVSEs, connectors, and parking spaces. Data owner is typically the CPO.
-  version: 2.3.0
+    EVSEs, and connectors. Data owner is typically the CPO.
+  version: 2.2.1
   license:
     name: Creative Commons Attribution-NoDerivatives 4.0 International
     url: https://creativecommons.org/licenses/by-nd/4.0/
 externalDocs:
-  description: OCPI 2.3.0 Specification
+  description: OCPI 2.2.1 Specification
   url: https://github.com/ocpi/ocpi
 servers:
-- url: https://example.com/ocpi/2.3.0
+- url: https://example.com/ocpi/2.2.1
   description: Example OCPI server
 security:
 - TokenAuth: []
@@ -894,12 +894,6 @@ components:
           type: array
           items:
             $ref: ./shared/schemas/locations.yaml#/components/schemas/Image
-        parking:
-          $ref: '#/components/schemas/EVSEParking'
-        terms_and_conditions:
-          type: string
-          format: uri
-          maxLength: 255
         last_updated:
           $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
       additionalProperties: true
@@ -1011,11 +1005,6 @@ components:
           items:
             $ref: '#/components/schemas/EVSE'
           description: List of EVSEs that belong to this Location.
-        parking_places:
-          type: array
-          items:
-            $ref: '#/components/schemas/Parking'
-          description: List of parking spaces at this Location.
         directions:
           type: array
           items:
@@ -1050,10 +1039,6 @@ components:
           description: Links to images related to the location.
         energy_mix:
           $ref: ./shared/schemas/locations.yaml#/components/schemas/EnergyMix
-        help_phone:
-          type: string
-          maxLength: 25
-          description: Customer service phone number.
         last_updated:
           $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
       additionalProperties: true
@@ -1115,22 +1100,11 @@ components:
           items:
             $ref: '#/components/schemas/ParkingRestriction'
           description: Restrictions that apply to the parking spot.
-        parking:
-          type: array
-          items:
-            $ref: '#/components/schemas/EVSEParking'
-          description: References to parking spaces assigned to this EVSE.
         images:
           type: array
           items:
             $ref: ./shared/schemas/locations.yaml#/components/schemas/Image
           description: Links to images related to the EVSE.
-        accepted_service_providers:
-          type: array
-          items:
-            type: string
-            maxLength: 50
-          description: Names of eMSPs that accept payment at this EVSE.
         last_updated:
           $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
       additionalProperties: true
@@ -1179,96 +1153,8 @@ components:
           format: uri
           maxLength: 255
           description: URL to the operator's terms and conditions.
-        capabilities:
-          type: array
-          items:
-            $ref: '#/components/schemas/ConnectorCapability'
-          description: List of functionalities that the connector is capable of.
         last_updated:
           $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
-      additionalProperties: true
-    Parking:
-      type: object
-      description: Describes a parking space at a Location (new in OCPI 2.3.0, for
-        EU AFIR compliance).
-      required:
-      - id
-      - vehicle_types
-      - restricted_to_type
-      - reservation_required
-      properties:
-        id:
-          type: string
-          maxLength: 36
-          description: Unique identifier of the parking space within the Location.
-        physical_reference:
-          type: string
-          maxLength: 12
-          description: Physically visible identifier of the parking space.
-        vehicle_types:
-          type: array
-          minItems: 1
-          items:
-            $ref: '#/components/schemas/VehicleType'
-          description: Vehicle types that this parking space can accommodate.
-        max_vehicle_weight:
-          type: number
-          description: Maximum vehicle weight in kg.
-        max_vehicle_height:
-          type: number
-          description: Maximum vehicle height in cm.
-        max_vehicle_length:
-          type: number
-          description: Maximum vehicle length in cm.
-        max_vehicle_width:
-          type: number
-          description: Maximum vehicle width in cm.
-        parking_space_length:
-          type: number
-          description: Length of the parking space in cm.
-        parking_space_width:
-          type: number
-          description: Width of the parking space in cm.
-        dangerous_goods_allowed:
-          type: boolean
-          description: Whether vehicles carrying hazardous materials are allowed.
-        direction:
-          $ref: '#/components/schemas/ParkingDirection'
-        drive_through:
-          type: boolean
-          description: Whether the vehicle can drive through without reversing.
-        restricted_to_type:
-          type: boolean
-          description: Whether vehicles not in vehicle_types are forbidden.
-        reservation_required:
-          type: boolean
-          description: Whether a reservation is required to use this parking space.
-        time_limit:
-          type: number
-          description: Maximum parking time in minutes.
-        roofed:
-          type: boolean
-          description: Whether the parking space is under a roof.
-        images:
-          type: array
-          items:
-            $ref: ./shared/schemas/locations.yaml#/components/schemas/Image
-          description: Photos of the parking space.
-        lighting:
-          type: boolean
-          description: Whether artificial lighting is available.
-        refrigeration_outlet:
-          type: boolean
-          description: Whether a power outlet for truck refrigeration is available.
-        standards:
-          type: array
-          items:
-            type: string
-            maxLength: 36
-          description: Parking space standards (e.g. PAS 1899).
-        apds_reference:
-          type: string
-          description: APDS element reference.
       additionalProperties: true
     PublishTokenType:
       type: object
@@ -1308,19 +1194,6 @@ components:
         status:
           $ref: '#/components/schemas/Status'
       additionalProperties: true
-    EVSEParking:
-      type: object
-      description: References a Parking space from an EVSE.
-      required:
-      - parking_id
-      properties:
-        parking_id:
-          type: string
-          maxLength: 36
-          description: Reference to a Parking object's id.
-        evse_position:
-          $ref: '#/components/schemas/EVSEPosition'
-      additionalProperties: true
     Status:
       type: string
       enum:
@@ -1353,14 +1226,6 @@ components:
         - UNLOCK_CAPABLE
       - type: string
       description: The capabilities of an EVSE.
-    ConnectorCapability:
-      anyOf:
-      - type: string
-        enum:
-        - ISO_15118_2_PLUG_AND_CHARGE
-        - ISO_15118_20_PLUG_AND_CHARGE
-      - type: string
-      description: The capabilities of a Connector.
     ConnectorFormat:
       type: string
       enum:
@@ -1400,7 +1265,6 @@ components:
         - IEC_62196_T2_COMBO
         - IEC_62196_T3A
         - IEC_62196_T3C
-        - MCS
         - NEMA_5_20
         - NEMA_6_30
         - NEMA_6_50
@@ -1410,7 +1274,6 @@ components:
         - NEMA_14_50
         - PANTOGRAPH_BOTTOM_UP
         - PANTOGRAPH_TOP_DOWN
-        - SAE_J3400
         - TESLA_R
         - TESLA_S
       - type: string
@@ -1442,28 +1305,11 @@ components:
         enum:
         - CUSTOMERS
         - DISABLED
-        - EMPLOYEES
         - EV_ONLY
         - MOTORCYCLES
         - PLUGGED
-        - TAXIS
-        - TENANTS
       - type: string
       description: Restrictions for using a parking spot.
-    ParkingDirection:
-      type: string
-      enum:
-      - PARALLEL
-      - PERPENDICULAR
-      - ANGLE
-      description: Direction of the parking space relative to the EVSE.
-    EVSEPosition:
-      type: string
-      enum:
-      - LEFT
-      - RIGHT
-      - CENTER
-      description: Position of the EVSE relative to the parking space.
     Facility:
       anyOf:
       - type: string
@@ -1490,18 +1336,3 @@ components:
         - WIFI
       - type: string
       description: Facilities at or near the charging location.
-    VehicleType:
-      anyOf:
-      - type: string
-        enum:
-        - MOTORCYCLE
-        - PERSONAL_VEHICLE
-        - PERSONAL_VEHICLE_WITH_TRAILER
-        - VAN
-        - SEMI_TRACTOR
-        - RIGID
-        - TRUCK_WITH_TRAILER
-        - BUS
-        - DISABLED
-      - type: string
-      description: Types of vehicles that can use a parking space.

@@ -19,8 +19,10 @@ security:
 paths:
   /sessions:
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
@@ -41,10 +43,12 @@ paths:
         '200':
           description: List of Session objects.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Correlation-ID
+            # Pagination headers
             X-Total-Count:
               $ref: ./shared/headers.yaml#/components/headers/X-Total-Count
             X-Limit:
@@ -83,6 +87,7 @@ paths:
         '200':
           description: Charging Preferences response.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -96,8 +101,10 @@ paths:
         '404':
           description: Session not found or EVSE does not support Charging Preferences.
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code
@@ -122,6 +129,7 @@ paths:
         '200':
           description: The requested Session object.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -181,6 +189,7 @@ paths:
         '200':
           description: Session updated.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -192,6 +201,7 @@ paths:
         '201':
           description: Session created.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -238,6 +248,7 @@ paths:
         '200':
           description: Session partially updated.
           headers:
+            # Correlation headers
             X-Request-ID:
               $ref: ./shared/headers.yaml#/components/headers/X-Request-ID
             X-Correlation-ID:
@@ -249,8 +260,10 @@ paths:
         '401':
           description: Unauthorized.
     parameters:
+    # Correlation headers
     - $ref: ./shared/headers.yaml#/components/parameters/X-Request-ID
     - $ref: ./shared/headers.yaml#/components/parameters/X-Correlation-ID
+    # Routing headers
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-country-code
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-from-party-id
     - $ref: ./shared/headers.yaml#/components/parameters/OCPI-to-country-code

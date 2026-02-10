@@ -1,0 +1,74 @@
+# OCPI 2.2.1 - Shared Parameters
+# Reusable query and path parameters
+openapi: 3.1.0
+info:
+  title: OCPI 2.2.1 - Shared Parameters
+  version: 2.2.1
+
+paths: {}
+
+components:
+  parameters:
+    # ---- Pagination Query Parameters ----
+
+    date_from:
+      name: date_from
+      in: query
+      required: false
+      description: >-
+        Only return objects that have last_updated after or equal to this Date/Time (inclusive).
+      schema:
+        type: string
+        format: date-time
+
+    date_to:
+      name: date_to
+      in: query
+      required: false
+      description: >-
+        Only return objects that have last_updated up to this Date/Time, but not including (exclusive).
+      schema:
+        type: string
+        format: date-time
+
+    offset:
+      name: offset
+      in: query
+      required: false
+      description: The offset of the first object returned. Default is 0.
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+
+    limit:
+      name: limit
+      in: query
+      required: false
+      description: >-
+        Maximum number of objects to GET. The server might return fewer objects.
+      schema:
+        type: integer
+        minimum: 0
+
+    # ---- Client Owned Object Path Parameters ----
+
+    country_code:
+      name: country_code
+      in: path
+      required: true
+      description: ISO-3166 alpha-2 country code of the party that owns the object.
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 2
+
+    party_id:
+      name: party_id
+      in: path
+      required: true
+      description: Party ID (Provider ID) of the party that owns the object.
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 3

@@ -2,7 +2,10 @@
 
 ## Context
 
-The OCPI repository includes the protocol specification (AsciiDoc) but no OpenAPI files, which makes implementation harder for developers. The goal is to create OpenAPI 3.1.0 files that fully cover OCPI 2.3.0: 11 modules, ~100 types/enums, and ~50 endpoints.
+The OCPI 2.3.0 source specification is in `specifications/ocpi-2.3.0/`. The goal is to maintain OpenAPI 3.1.0 sources that fully cover OCPI 2.3.0 in a way that is:
+- spec-first (AsciiDoc semantics preserved),
+- codegen-ready (stable reusable models),
+- and consistent with current repository conventions.
 
 ## Design Decisions
 
@@ -16,7 +19,7 @@ The OCPI repository includes the protocol specification (AsciiDoc) but no OpenAP
 A good balance between maintainability and ease of use.
 
 ```
-openapi/
+openapi/ocpi-2.3.0/
 ├── shared/
 │   ├── common.yaml            # OCPI response envelope base schema(s)
 │   ├── headers.yaml           # Common headers (Auth, X-Request-ID, routing, pagination)
@@ -36,14 +39,15 @@ openapi/
 ├── commands.yaml              # Commands module (async callbacks)
 ├── charging-profiles.yaml     # ChargingProfiles module (async callbacks)
 ├── hub-client-info.yaml       # Hub Client Info module
-└── payments.yaml              # Payments module (Terminals + FAC)
+├── payments.yaml              # Payments module (Terminals + FAC)
+└── openapi.yaml               # Root aggregator generated from module refs
 ```
 
-**Total: 14 files (~5,600 YAML lines)**
+**Total: 19 files (~5,600 YAML lines)** (11 module files + 7 shared files + 1 root aggregator)
 
 ### Sender vs Receiver in the same file
 Each module file contains both interfaces (Sender and Receiver), separated by OpenAPI tags (`Locations - Sender`, `Locations - Receiver`). This provides:
-- Fewer files to manage (14 instead of ~25)
+- Fewer files to manage (19 instead of ~25)
 - Schemas colocated with the endpoints that use them
 - Code generation tools can filter by tag
 
@@ -68,7 +72,8 @@ Additionally, use top-level `webhooks` (OpenAPI 3.1.0) to formally document the 
 endpoints that receive async results (CommandResult, ActiveChargingProfileResult,
 ChargingProfileResult, ClearProfileResult). Both approaches are complementary: callbacks show
 the link from Receiver to response_url, while webhooks provide a standalone Sender interface
-specification for implementers.
+specification for implementers. Keep async artifact names stable across callbacks and webhooks
+(`CommandResult`, `ActiveChargingProfileResult`, `ChargingProfileResult`, `ClearProfileResult`).
 
 ### OCPI extensibility
 All objects use `additionalProperties: true` (OCPI forbids rejecting unknown fields).
@@ -83,20 +88,30 @@ To reduce repetition and keep module files readable:
 - Keep response headers at response level (no path-level factorization in OpenAPI responses), but add grouping comments:
   - `# Correlation headers`: `X-Request-ID`, `X-Correlation-ID`
   - `# Pagination headers`: `X-Total-Count`, `X-Limit`, `Link`
-- Exception: do **not** add OCPI routing headers to `versions.yaml` and `credentials.yaml` where those headers are not part of the functional module contract.
+- Exception: do **not** add OCPI routing headers to `versions.yaml`, `credentials.yaml`, and `hub-client-info.yaml` where those headers are not part of the functional module contract.
 - Path-level request headers are merged with operation-level parameters; if an operation defines the same parameter (`name` + `in`), the operation-level value overrides the path-level one.
 
 ## Implementation Plan
 
+### Phase 0: Baseline and gap analysis
+1. Compare current 2.3.0 OpenAPI sources against:
+   - `specifications/ocpi-2.3.0/*.asciidoc`
+   - `openapi/ocpi-2.2.1/` structure and latest rules
+2. Build a delta list:
+   - missing/extra endpoints,
+   - missing/duplicated schemas,
+   - non-uniform header placement,
+   - missing callbacks/webhooks.
+
 ### Phase 1: Foundation (`shared/`)
 **Files:**
-- `openapi/shared/common.yaml`
-- `openapi/shared/headers.yaml`
-- `openapi/shared/parameters.yaml`
-- `openapi/shared/schemas/types.yaml`
-- `openapi/shared/schemas/locations.yaml`
-- `openapi/shared/schemas/tokens.yaml`
-- `openapi/shared/schemas/cdrs.yaml`
+- `openapi/ocpi-2.3.0/shared/common.yaml`
+- `openapi/ocpi-2.3.0/shared/headers.yaml`
+- `openapi/ocpi-2.3.0/shared/parameters.yaml`
+- `openapi/ocpi-2.3.0/shared/schemas/types.yaml`
+- `openapi/ocpi-2.3.0/shared/schemas/locations.yaml`
+- `openapi/ocpi-2.3.0/shared/schemas/tokens.yaml`
+- `openapi/ocpi-2.3.0/shared/schemas/cdrs.yaml`
 
 `common.yaml` content:
 - `OcpiResponse` (generic wrapper)
@@ -135,7 +150,7 @@ To reduce repetition and keep module files readable:
 - Client-owned resources: `country_code`, `party_id` (path params)
 
 ### Phase 2: Configuration modules
-**Files:** `openapi/versions.yaml`, `openapi/credentials.yaml`
+**Files:** `openapi/ocpi-2.3.0/versions.yaml`, `openapi/ocpi-2.3.0/credentials.yaml`
 
 `versions.yaml`:
 - GET /versions -> list of versions (version + url)
@@ -214,6 +229,18 @@ To reduce repetition and keep module files readable:
 - Schemas: `Terminal`, `FinancialAdviceConfirmation`
 - Enums: `InvoiceCreator`, `CaptureStatusCode`
 
+### Phase 6: Root aggregation
+Generate root file:
+
+```bash
+node tools/generate-root-openapi.js 2.3.0
+```
+
+Expected output:
+- `openapi/ocpi-2.3.0/openapi.yaml`
+- root `paths` `$ref` entries for each module
+- root `webhooks` `$ref` entries for async modules
+
 ## Conventions
 
 | Aspect | Convention |
@@ -230,9 +257,9 @@ To reduce repetition and keep module files readable:
 | Async webhooks | Commands and ChargingProfiles use `webhooks` + `callbacks` to document both sides |
 | Request header placement | Prefer path-level `parameters` for shared OCPI headers; keep operation-level parameters only for operation-specific fields |
 | Header grouping comments | Use `# Correlation headers`, `# Routing headers`, and `# Pagination headers` to structure header blocks consistently |
-| Header exceptions | `versions.yaml` and `credentials.yaml` do not receive OCPI routing headers by default |
+| Header exceptions | `versions.yaml`, `credentials.yaml`, and `hub-client-info.yaml` do not receive OCPI routing headers by default |
 
-## Source Files Reviewed
+## Source Files Reviewed for 2.3.0
 
 | Source file | Used for |
 |-------------|----------|
@@ -253,21 +280,31 @@ To reduce repetition and keep module files readable:
 
 ## Verification
 
-1. **Syntax validation**: each YAML file validated with `pyyaml` — 14/14 OK
+1. **Syntax validation**: each YAML file validated with `pyyaml` — 19/19 OK
 2. **Example conformance**: JSON files in `examples/` can be validated against schemas
 3. **Completeness**: each endpoint and type checked against the corresponding `.asciidoc` file
 4. **Cross-references**: inter-file `$ref` values use relative paths
-5. **Linting**: run `npx @redocly/cli lint openapi/**/*.yaml` and resolve path/parameter merge warnings
-6. **UI parity check**: verify in Swagger UI that each operation still exposes the same effective request and response headers after path-level grouping
+5. **Linting**: run `npx @redocly/cli lint openapi/ocpi-2.3.0/openapi.yaml` and `npx @redocly/cli lint openapi/ocpi-2.3.0/**/*.yaml`, then resolve path/parameter merge warnings
+6. **Build smoke tests**: run `npm run build:redoc` and `npm run build:swagger`
+7. **Bundle integrity**: run `npx @redocly/cli bundle openapi/ocpi-2.3.0/openapi.yaml -o /tmp/ocpi-2.3.0.bundle.yaml`
+8. **Coverage matrix**: maintain endpoint/schema mapping from AsciiDoc sources to OpenAPI paths/components and document intentional exclusions
+9. **UI parity check**: verify in Swagger UI that each operation still exposes the same effective request and response headers after path-level grouping
 
-## Current Refactor Objective (Single-Pass, All Modules)
+## 2.3.0 Guardrails (Spec Scope Discipline)
+
+- keep Payments artifacts only in 2.3.0 plan and sources,
+- keep 2.3.0 role/module enum values aligned with 2.3.0 AsciiDoc,
+- avoid introducing fields/endpoints not grounded in the 2.3.0 source spec,
+- document any deliberate modeling tradeoff for codegen clarity.
+
+## Refactor Objective (Single-Pass, All 2.3.0 Modules)
 
 This phase refactors all OCPI 2.3.0 modules in one pass with the following priority order:
 
 1. **respect-spec-before**: schema names, semantics, and extensibility behavior MUST follow the OCPI AsciiDoc specification.
 2. **codegen-first**: resulting OpenAPI MUST remain stable and reusable for SDK generation.
 
-### Rules for this phase
+### Rules for this pass
 
 - Refactor all modules together (`versions`, `credentials`, `locations`, `sessions`, `cdrs`, `tariffs`, `tokens`, `commands`, `charging-profiles`, `hub-client-info`, `payments`).
 - Keep module-level root objects (for example `CDR`, `Session`, `Token`, `Tariff`) where they represent module contracts.
@@ -284,7 +321,7 @@ anyOf:
   - type: string
 ```
 
-### Acceptance criteria for this phase
+### Acceptance criteria
 
 - No duplicated shared schema definitions across module files.
 - Shared schema refs are visible and reused across modules.
@@ -293,7 +330,7 @@ anyOf:
 - `npm run build:redoc` and `npm run build:swagger` both succeed.
 - Bundled spec remains complete for all modules and preserves OCPI semantics.
 
-## Model generation rules (spec-first, codegen-ready)
+## Model Generation Rules (Spec-First, Codegen-Ready)
 
 These rules apply to schema naming and response modeling for all modules.
 
@@ -327,15 +364,24 @@ These rules apply to schema naming and response modeling for all modules.
 - Build Swagger bundles with Redocly CLI bundle to preserve named reusable schemas in output.
 - Keep Swagger UI models panel visible (`defaultModelsExpandDepth` >= 0) to make shared model references inspectable.
 
-## Header grouping migration steps
+## Header Grouping Migration Steps
 
-1. For each module, identify paths where all operations share the same 6 OCPI request headers.
+1. For each functional module, identify paths where all operations share the same 6 OCPI request headers.
 2. Move those 6 header `$ref` to `paths.<path>.parameters` with grouped comments:
    - `# Correlation headers`
    - `# Routing headers`
 3. Keep only operation-specific parameters at operation level.
-4. Keep response headers at response level with grouped comments:
+4. For configuration modules (`versions`, `credentials`, `hub-client-info`), keep only correlation headers unless the spec explicitly requires routing headers.
+5. Keep response headers at response level with grouped comments:
    - `# Correlation headers`
    - `# Pagination headers`
-5. Validate with `npx @redocly/cli lint`.
-6. Verify in Swagger UI that each operation still exposes the same effective headers.
+6. Validate with `npx @redocly/cli lint`.
+7. Verify in Swagger UI that each operation still exposes the same effective headers.
+
+## Deliverables
+
+1. Updated plan aligned with latest OpenAPI rules for 2.3.0.
+2. Refreshed OpenAPI sources under `openapi/ocpi-2.3.0/` with shared schema split.
+3. Generated root file `openapi/ocpi-2.3.0/openapi.yaml`.
+4. Endpoint + schema coverage matrix (`specifications/ocpi-2.3.0/*.asciidoc` -> `openapi/ocpi-2.3.0/**/*.yaml`).
+5. Lint/build/bundle verification evidence and any residual warning rationale.

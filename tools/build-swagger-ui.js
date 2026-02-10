@@ -124,7 +124,10 @@ function normalizeHeaderGroupingInBundle(outputYamlPath) {
     const opNames = methods.filter((m) => pathItem[m] && typeof pathItem[m] === "object");
     if (opNames.length === 0) continue;
 
-    const isExceptionPath = pathKey.startsWith("/versions") || pathKey.startsWith("/credentials");
+    const isExceptionPath =
+      pathKey.startsWith("/versions") ||
+      pathKey.startsWith("/credentials") ||
+      pathKey.startsWith("/hubclientinfo");
     const targetHeaders = isExceptionPath
       ? correlationHeaders
       : correlationHeaders.concat(routingHeaders);

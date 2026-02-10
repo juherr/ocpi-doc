@@ -1,17 +1,17 @@
 openapi: 3.1.0
 info:
-  title: OCPI 2.3.0 - Tariffs
+  title: OCPI 2.2.1 - Tariffs
   description: The Tariffs module provides information about the tariffs used by a
     CPO. Data owner is typically the CPO.
-  version: 2.3.0
+  version: 2.2.1
   license:
     name: Creative Commons Attribution-NoDerivatives 4.0 International
     url: https://creativecommons.org/licenses/by-nd/4.0/
 externalDocs:
-  description: OCPI 2.3.0 Specification
+  description: OCPI 2.2.1 Specification
   url: https://github.com/ocpi/ocpi
 servers:
-- url: https://example.com/ocpi/2.3.0
+- url: https://example.com/ocpi/2.2.1
   description: Example OCPI server
 security:
 - TokenAuth: []
@@ -244,7 +244,6 @@ components:
       - id
       - currency
       - elements
-      - tax_included
       - last_updated
       properties:
         country_code:
@@ -277,21 +276,15 @@ components:
           description: URL to a web page with tariff information in human readable
             form.
         min_price:
-          $ref: '#/components/schemas/PriceLimit'
+          $ref: ./shared/schemas/types.yaml#/components/schemas/Price
         max_price:
-          $ref: '#/components/schemas/PriceLimit'
-        preauthorize_amount:
-          type: number
-          description: Amount that a Payment Terminal Provider should preauthorize
-            for card payment.
+          $ref: ./shared/schemas/types.yaml#/components/schemas/Price
         elements:
           type: array
           minItems: 1
           items:
             $ref: '#/components/schemas/TariffElement'
           description: List of Tariff Elements.
-        tax_included:
-          $ref: '#/components/schemas/TaxIncluded'
         start_date_time:
           $ref: ./shared/schemas/types.yaml#/components/schemas/DateTime
         end_date_time:
@@ -329,8 +322,7 @@ components:
           $ref: '#/components/schemas/TariffDimensionType'
         price:
           type: number
-          description: Price per unit (including or excluding taxes per tax_included
-            field).
+          description: Price per unit (excluding VAT).
         vat:
           type: number
           description: Applicable VAT percentage. If omitted, no VAT is applicable.
@@ -339,19 +331,6 @@ components:
           description: Minimum amount to be billed. Consumed amounts are rounded up
             to the smallest multiple of step_size that is at least equal to the consumed
             amount.
-      additionalProperties: true
-    PriceLimit:
-      type: object
-      description: Minimum or maximum price limit for a charging session.
-      required:
-      - before_taxes
-      properties:
-        before_taxes:
-          type: number
-          description: Maximum or minimum cost excluding taxes.
-        after_taxes:
-          type: number
-          description: Maximum or minimum cost including taxes.
       additionalProperties: true
     TariffRestrictions:
       type: object
@@ -444,10 +423,3 @@ components:
       - RESERVATION
       - RESERVATION_EXPIRES
       description: Type of reservation restriction in a TariffElement.
-    TaxIncluded:
-      type: string
-      enum:
-      - 'YES'
-      - 'NO'
-      - N/A
-      description: Whether taxes are included in this Tariff's prices.

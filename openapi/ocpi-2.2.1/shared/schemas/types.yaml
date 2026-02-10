@@ -1,0 +1,64 @@
+openapi: 3.1.0
+info:
+  title: OCPI 2.2.1 - Shared Types
+  version: 2.2.1
+
+paths: {}
+
+components:
+  schemas:
+    DateTime:
+      type: string
+      format: date-time
+      description: >-
+        Timestamp formatted as RFC 3339 string in UTC.
+        Fractional seconds MAY be used.
+      example: "2024-01-15T10:30:00Z"
+
+    CiString:
+      type: string
+      description: Case Insensitive String. Only printable ASCII allowed.
+
+    DisplayText:
+      type: object
+      description: Multi-language text with a language code.
+      required:
+        - language
+        - text
+      properties:
+        language:
+          type: string
+          minLength: 2
+          maxLength: 2
+          description: Language Code ISO 639-1.
+        text:
+          type: string
+          maxLength: 512
+          description: Text to be displayed to an end user. No markup, HTML etc. allowed.
+      additionalProperties: true
+
+    Price:
+      type: object
+      description: Price with VAT information.
+      required:
+        - excl_vat
+      properties:
+        excl_vat:
+          type: number
+          description: Price/Cost excluding VAT.
+        incl_vat:
+          type: number
+          description: Price/Cost including VAT.
+      additionalProperties: true
+
+    Role:
+      type: string
+      enum:
+        - CPO
+        - EMSP
+        - HUB
+        - NAP
+        - NSP
+        - OTHER
+        - SCSP
+      description: The role of a party in the EV charging ecosystem.

@@ -1,5 +1,5 @@
 site:
-  title: OCPI
+  title: OCPI.fyi
   start_page: ocpi::index.adoc
 
 content:

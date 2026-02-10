@@ -1,17 +1,17 @@
 openapi: 3.1.0
 info:
-  title: OCPI 2.3.0 - Hub Client Info
+  title: OCPI 2.2.1 - Hub Client Info
   description: The Hub Client Info module provides information about parties connected
     to a Hub. Data owner is the Hub.
-  version: 2.3.0
+  version: 2.2.1
   license:
     name: Creative Commons Attribution-NoDerivatives 4.0 International
     url: https://creativecommons.org/licenses/by-nd/4.0/
 externalDocs:
-  description: OCPI 2.3.0 Specification
+  description: OCPI 2.2.1 Specification
   url: https://github.com/ocpi/ocpi
 servers:
-- url: https://example.com/ocpi/2.3.0
+- url: https://example.com/ocpi/2.2.1
   description: Example OCPI server
 security:
 - TokenAuth: []

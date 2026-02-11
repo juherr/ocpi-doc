@@ -25,6 +25,11 @@ Maintenance reminder:
 - `npm run build:redoc` generates one Redoc page per version in `public/api/<version>/index.html`.
 - `npm run build:openapi-diff` generates OpenAPI comparison pages under `public/api/<version>/diff/` for configured baselines.
 - `npm run build:swagger` generates one Swagger UI page per version in `public/api/<version>/swagger/index.html`.
+- `npm run build:search` generates a Pagefind static index under `public/pagefind/`.
+- Pagefind indexing is limited to `/ocpi/**/*.html` (spec pages only); `/api/` pages are intentionally excluded.
+- If `/ocpi/latest/` pages exist, they are excluded from Pagefind indexing to avoid duplicate results.
+- Pagefind indexing excludes boilerplate content such as `Edit this Page` and module header boilerplate.
+- Search results include an OCPI version badge and a version filter in the search popup.
 - `/api/` must point to the latest version (generated as a redirect page).
 - The public website is English-only; navigation labels and generated UI text must stay in English.
 - Antora version navigation includes `Home`, `Spec`, `Library`, `API Diff`, `Community`, `Sponsor`, and `About`.
@@ -37,6 +42,7 @@ Maintenance reminder:
 - Each generated Swagger UI page should expose a visible `Back to specification` link pointing to `/ocpi/<version>/index.html`.
 - When customizing the Antora navbar, keep the full default `<header class="header">...` structure in `antora/supplemental-ui/partials/header-content.hbs`.
 - For a working hover dropdown in the default UI, keep the dropdown trigger `href="#"` and place real links inside `.navbar-dropdown`.
+- Keep search UI text in English (for example, placeholder `Search the docs`).
 
 ## Source Import and Sync Strategy
 

@@ -7,3 +7,327 @@
     <span class="jh-item"><a href="https://github.com/juherr/ocpi-doc" rel="noopener">Source code</a></span>
   </p>
 </footer>
+<script src="/pagefind/pagefind-ui.js"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    if (!window.PagefindUI) return
+    var searchRoot = document.querySelector('#search')
+    if (!searchRoot) return
+
+    var extractVersionFromUrl = function (url) {
+      if (typeof url !== 'string') return null
+      var match = url.match(/\/ocpi\/([^/]+)\//)
+      if (!match) return null
+      if (match[1] === 'latest') return null
+      return match[1]
+    }
+
+    var parseVersionParts = function (value) {
+      return String(value || '').split('.').map(function (part) {
+        var parsed = Number.parseInt(part, 10)
+        return Number.isNaN(parsed) ? 0 : parsed
+      })
+    }
+
+    var compareVersionDesc = function (a, b) {
+      var partsA = parseVersionParts(a)
+      var partsB = parseVersionParts(b)
+      var max = Math.max(partsA.length, partsB.length)
+      for (var i = 0; i < max; i += 1) {
+        var left = partsA[i] || 0
+        var right = partsB[i] || 0
+        if (left !== right) return right - left
+      }
+      return String(a).localeCompare(String(b))
+    }
+
+    var getKnownVersions = function () {
+      var set = new Set()
+      var links = document.querySelectorAll('a[href*="/ocpi/"]')
+
+      links.forEach(function (link) {
+        var version = extractVersionFromUrl(link.getAttribute('href') || '')
+        if (version) set.add(version)
+      })
+
+      var fromPath = extractVersionFromUrl(window.location.pathname)
+      if (fromPath) set.add(fromPath)
+
+      return Array.from(set).sort(compareVersionDesc)
+    }
+
+    var knownVersions = getKnownVersions()
+    var versionPattern = /^\d+\.\d+(?:\.\d+)?$/
+    var searchUi
+
+    var mergeKnownVersions = function (versions) {
+      var changed = false
+      versions.forEach(function (version) {
+        if (!versionPattern.test(version)) return
+        if (knownVersions.indexOf(version) !== -1) return
+        knownVersions.push(version)
+        changed = true
+      })
+      if (changed) {
+        knownVersions.sort(compareVersionDesc)
+      }
+      return changed
+    }
+
+    var mergeKnownVersionsFromNativeFilters = function () {
+      var values = []
+      var inputs = searchRoot.querySelectorAll('.pagefind-ui__filter-panel input[type="checkbox"][value]')
+      inputs.forEach(function (input) {
+        values.push((input.getAttribute('value') || '').trim())
+      })
+      return mergeKnownVersions(values)
+    }
+
+    var updateVersionSelectOptions = function () {
+      var select = searchRoot.querySelector('#jh-version-filter')
+      if (!select) return
+
+      var currentValue = select.value || 'all'
+      var expectedValues = ['all'].concat(knownVersions)
+      var currentValues = Array.from(select.options).map(function (option) {
+        return option.value
+      })
+
+      var hasSameOptions = expectedValues.length === currentValues.length && expectedValues.every(function (value, index) {
+        return currentValues[index] === value
+      })
+
+      if (hasSameOptions) {
+        select.value = knownVersions.indexOf(currentValue) !== -1 || currentValue === 'all' ? currentValue : 'all'
+        return
+      }
+
+      while (select.firstChild) {
+        select.removeChild(select.firstChild)
+      }
+
+      var allOption = document.createElement('option')
+      allOption.value = 'all'
+      allOption.textContent = 'All versions'
+      select.appendChild(allOption)
+
+      knownVersions.forEach(function (version) {
+        var option = document.createElement('option')
+        option.value = version
+        option.textContent = version
+        select.appendChild(option)
+      })
+
+      select.value = knownVersions.indexOf(currentValue) !== -1 || currentValue === 'all' ? currentValue : 'all'
+    }
+
+    searchUi = new window.PagefindUI({
+      element: '#search',
+      showSubResults: true,
+      showImages: false,
+      resetStyles: false,
+      processResult: function (result) {
+        var version = extractVersionFromUrl(result && result.url)
+        if (!result || !result.meta) return result
+
+        if (version && !result.meta.version) {
+          result.meta.version = version
+        }
+
+        return result
+      },
+      translations: {
+        placeholder: 'Search the docs'
+      }
+    })
+
+    var applyVersionFilter = function (value) {
+      if (!searchUi || typeof searchUi.triggerFilters !== 'function') return
+
+      if (!value || value === 'all') {
+        searchUi.triggerFilters({})
+      } else {
+        searchUi.triggerFilters({ Version: [value] })
+      }
+    }
+
+    var decorateResultBadges = function () {
+      var resultLinks = searchRoot.querySelectorAll('.pagefind-ui__result-link')
+      resultLinks.forEach(function (link) {
+        if (link.querySelector('.jh-version-badge')) return
+
+        var href = link.getAttribute('href') || ''
+        var version = extractVersionFromUrl(href)
+        if (!version) return
+
+        var titleText = (link.textContent || '').trim()
+        var prefix = '[' + version + '] '
+        if (titleText.startsWith(prefix)) {
+          titleText = titleText.slice(prefix.length)
+        }
+
+        while (link.firstChild) {
+          link.removeChild(link.firstChild)
+        }
+
+        var badge = document.createElement('span')
+        badge.className = 'jh-version-badge'
+        badge.textContent = version
+
+        var title = document.createElement('span')
+        title.className = 'jh-result-title'
+        title.textContent = titleText
+
+        link.appendChild(badge)
+        link.appendChild(title)
+      })
+
+      var resultTags = searchRoot.querySelectorAll('.pagefind-ui__result-tag')
+      resultTags.forEach(function (tag) {
+        var text = (tag.textContent || '').trim()
+        if (/^version\s*:/i.test(text)) {
+          tag.remove()
+        }
+      })
+
+      var resultTagContainers = searchRoot.querySelectorAll('.pagefind-ui__result-tags')
+      resultTagContainers.forEach(function (container) {
+        if (!container.children.length) {
+          container.remove()
+        }
+      })
+    }
+
+    var ensureFilterUi = function () {
+      var drawer = searchRoot.querySelector('.pagefind-ui__drawer')
+      if (!drawer) return
+
+      mergeKnownVersionsFromNativeFilters()
+
+      if (drawer.querySelector('.jh-search-controls')) {
+        updateVersionSelectOptions()
+        return
+      }
+
+      var controls = document.createElement('div')
+      controls.className = 'jh-search-controls'
+
+      var label = document.createElement('label')
+      label.className = 'jh-search-filter-label'
+      label.textContent = 'Version'
+      label.setAttribute('for', 'jh-version-filter')
+
+      var select = document.createElement('select')
+      select.className = 'jh-search-filter-select'
+      select.id = 'jh-version-filter'
+
+      select.addEventListener('change', function () {
+        applyVersionFilter(select.value)
+      })
+
+      controls.appendChild(label)
+      controls.appendChild(select)
+      drawer.prepend(controls)
+      updateVersionSelectOptions()
+    }
+
+    var enhanceSearchUi = function () {
+      ensureFilterUi()
+      decorateResultBadges()
+    }
+
+    var closeSearch = function () {
+      searchRoot.classList.add('jh-search-closed')
+      searchRoot.classList.remove('jh-search-drawer-above', 'jh-search-drawer-below')
+      var input = searchRoot.querySelector('.pagefind-ui__search-input')
+      if (input) input.blur()
+    }
+
+    var positionDrawer = function () {
+      var drawer = searchRoot.querySelector('.pagefind-ui__drawer')
+      var input = searchRoot.querySelector('.pagefind-ui__search-input')
+      if (!drawer || !input || searchRoot.classList.contains('jh-search-closed')) return
+
+      var margin = 10
+      var rect = input.getBoundingClientRect()
+      var availableAbove = Math.max(0, rect.top - margin)
+      var availableBelow = Math.max(0, window.innerHeight - rect.bottom - margin)
+      var preferredMaxHeight = Math.min(Math.floor(window.innerHeight * 0.65), 480)
+      var minHeight = 120
+      var placeAbove = availableAbove >= Math.max(minHeight, availableBelow)
+      var availableHeight = placeAbove ? availableAbove : availableBelow
+      var maxHeight = Math.max(minHeight, Math.min(preferredMaxHeight, availableHeight))
+
+      var maxWidth = Math.max(220, window.innerWidth - margin * 2)
+      var width = Math.min(rect.width, maxWidth)
+      var left = Math.min(Math.max(margin, rect.left), window.innerWidth - width - margin)
+
+      drawer.style.position = 'fixed'
+      drawer.style.left = left + 'px'
+      drawer.style.width = width + 'px'
+      drawer.style.top = placeAbove ? 'auto' : rect.bottom + 8 + 'px'
+      drawer.style.bottom = placeAbove ? window.innerHeight - rect.top + 8 + 'px' : 'auto'
+      drawer.style.maxHeight = maxHeight + 'px'
+      drawer.style.zIndex = '1200'
+      drawer.style.overflowY = 'auto'
+
+      searchRoot.classList.toggle('jh-search-drawer-above', placeAbove)
+      searchRoot.classList.toggle('jh-search-drawer-below', !placeAbove)
+    }
+
+    var queuePosition = function () {
+      window.requestAnimationFrame(function () {
+        positionDrawer()
+      })
+      window.setTimeout(function () {
+        enhanceSearchUi()
+        positionDrawer()
+      }, 80)
+    }
+
+    var openSearch = function () {
+      searchRoot.classList.remove('jh-search-closed')
+      queuePosition()
+    }
+
+    searchRoot.classList.add('jh-search-closed')
+
+    searchRoot.addEventListener('focusin', openSearch)
+
+    searchRoot.addEventListener('input', function (event) {
+      if (event.target && event.target.classList && event.target.classList.contains('pagefind-ui__search-input')) {
+        openSearch()
+      }
+    })
+
+    searchRoot.addEventListener('click', function () {
+      if (!searchRoot.classList.contains('jh-search-closed')) {
+        queuePosition()
+      }
+    })
+
+    window.addEventListener('resize', function () {
+      if (!searchRoot.classList.contains('jh-search-closed')) {
+        queuePosition()
+      }
+    })
+
+    window.addEventListener('scroll', function () {
+      if (!searchRoot.classList.contains('jh-search-closed')) {
+        queuePosition()
+      }
+    }, true)
+
+    document.addEventListener('pointerdown', function (event) {
+      if (!searchRoot.contains(event.target)) {
+        closeSearch()
+      }
+    })
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeSearch()
+      }
+    })
+  })
+</script>

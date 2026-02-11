@@ -2,6 +2,7 @@
   "devDependencies": {
     "@antora/cli": "^3.1.14",
     "@antora/site-generator": "^3.1.14",
+    "pagefind": "^1.4.0",
     "swagger-ui-dist": "^5.31.0",
     "yaml": "^2.8.2"
   },
@@ -15,10 +16,11 @@
   "scripts": {
     "generate:antora": "node tools/generate-antora-components.js",
     "build:antora": "npm run generate:antora && npx antora antora-playbook.yml",
+    "build:search": "node tools/prepare-pagefind.js && npx pagefind --site public --glob \"ocpi/**/*.html\" --force-language en",
     "build:redoc": "node tools/build-redoc.js",
     "build:openapi-diff": "node tools/build-openapi-diff.js",
     "build:swagger": "node tools/build-swagger-ui.js",
-    "build:site": "npm run build:antora && npm run build:redoc && npm run build:openapi-diff && npm run build:swagger",
+    "build:site": "npm run build:antora && npm run build:redoc && npm run build:openapi-diff && npm run build:swagger && npm run build:search",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

@@ -73,6 +73,24 @@ npm run build:site
 
 Generated site output is written to `public/`.
 
+### Site search (Pagefind)
+
+- Search is powered by [Pagefind](https://pagefind.app/).
+- Search indexing is intentionally scoped to specification pages under `/ocpi/`.
+- API pages under `/api/` are not indexed.
+- If a `/ocpi/latest/` alias exists, it is excluded from indexing to avoid duplicate search results.
+- Boilerplate UI text (for example `Edit this Page`) and module header boilerplate are excluded from search indexing.
+- Search results display a version badge and support filtering by OCPI version in the search popup.
+
+Useful commands:
+
+```bash
+npm run build:antora
+npm run build:search
+```
+
+`npm run build:site` runs the full pipeline (Antora + API pages + search index).
+
 ### Library section maintenance
 
 - Library pages are generated per OCPI version.
@@ -102,7 +120,7 @@ npm run build:swagger
 
 `npm run build:swagger` auto-detects every `openapi/ocpi-x.y.z/` directory and generates one Swagger UI page per version.
 
-`npm run build:site` builds Antora + Redoc + Swagger UI into `public/`.
+`npm run build:site` builds Antora + Redoc + Swagger UI and then generates the Pagefind index into `public/`.
 
 ## Deployment
 

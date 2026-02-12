@@ -6,6 +6,7 @@ const ROOT_DIR = process.cwd()
 const SPECIFICATIONS_DIR = path.join(ROOT_DIR, 'specifications')
 const OUTPUT_ROOT = path.join(ROOT_DIR, 'antora', 'components')
 const OPENAPI_ROOT_DIR = path.join(ROOT_DIR, 'openapi')
+const SERVICES_CSV_PATH = path.join(ROOT_DIR, 'data', 'services.csv')
 
 const IGNORE_DOC_FILES = new Set([
   'pdf_layout.asciidoc',
@@ -18,6 +19,31 @@ const ROOT_ASSET_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.svg', '.gif'])
 const DEPRECATED_VERSIONS = {
   '2.2.0': '2.2.1',
 }
+const SERVICE_CATEGORY_ORDER = [
+  'Roaming Hub',
+  'CPO Platform/CPMS',
+  'eMSP Platform',
+  'OCPI Gateway/Integration',
+  'Interoperability Service',
+  'Other',
+]
+const SERVICE_REQUIRED_COLUMNS = [
+  'company_name',
+  'service_name',
+  'category',
+  'website_url',
+  'product_url',
+  'catalog_versions',
+  'ocpi_versions',
+  'roles_supported',
+  'geographic_coverage',
+  'target_customers',
+  'notes',
+  'sponsorship_tier',
+  'source_urls',
+  'last_verified_date',
+  'active',
+]
 const UPSTREAM_BRANCHES = {
   '2.3.0': 'release-2.3.0-bugfixes',
   '2.2.1': 'release-2.2.1-bugfixes',
@@ -478,6 +504,278 @@ function getUpstreamEditUrl(version, fileName) {
   return `https://github.com/ocpi/ocpi/blob/${branch}/${fileName}`
 }
 
+function parseCsv(content) {
+  const rows = []
+  let row = []
+  let value = ''
+  let inQuotes = false
+
+  const normalized = content.replace(/^\uFEFF/, '')
+  for (let i = 0; i < normalized.length; i += 1) {
+    const char = normalized[i]
+    const nextChar = normalized[i + 1]
+
+    if (inQuotes) {
+      if (char === '"' && nextChar === '"') {
+        value += '"'
+        i += 1
+      } else if (char === '"') {
+        inQuotes = false
+      } else {
+        value += char
+      }
+      continue
+    }
+
+    if (char === '"') {
+      inQuotes = true
+      continue
+    }
+
+    if (char === ',') {
+      row.push(value)
+      value = ''
+      continue
+    }
+
+    if (char === '\n') {
+      row.push(value)
+      rows.push(row)
+      row = []
+      value = ''
+      continue
+    }
+
+    if (char !== '\r') {
+      value += char
+    }
+  }
+
+  if (value.length || row.length) {
+    row.push(value)
+    rows.push(row)
+  }
+
+  return rows
+}
+
+function splitMultiValue(value) {
+  if (!value || value === 'Unknown') {
+    return []
+  }
+  return value
+    .split('|')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+}
+
+function formatMultiValue(value) {
+  const parts = splitMultiValue(value)
+  if (!parts.length) {
+    return 'Unknown'
+  }
+  return parts.join(', ')
+}
+
+function toYesNo(value) {
+  const normalized = String(value || '').trim().toLowerCase()
+  return normalized === 'yes' || normalized === 'true' || normalized === '1'
+}
+
+function readServicesCatalog() {
+  if (!fileExists(SERVICES_CSV_PATH)) {
+    return []
+  }
+
+  const content = fs.readFileSync(SERVICES_CSV_PATH, 'utf8')
+  const rows = parseCsv(content)
+  if (!rows.length) {
+    return []
+  }
+
+  const headers = rows[0].map((header) => header.trim())
+  const missingColumns = SERVICE_REQUIRED_COLUMNS.filter((column) => !headers.includes(column))
+  if (missingColumns.length) {
+    throw new Error(`Missing required columns in data/services.csv: ${missingColumns.join(', ')}`)
+  }
+
+  const headerIndex = new Map(headers.map((header, index) => [header, index]))
+  const services = []
+  for (let rowIndex = 1; rowIndex < rows.length; rowIndex += 1) {
+    const row = rows[rowIndex]
+    const isEmptyRow = row.every((cell) => !String(cell || '').trim())
+    if (isEmptyRow) {
+      continue
+    }
+
+    const record = {}
+    for (const [header, index] of headerIndex.entries()) {
+      record[header] = String(row[index] || '').trim()
+    }
+
+    services.push({
+      companyName: record.company_name,
+      serviceName: record.service_name,
+      category: SERVICE_CATEGORY_ORDER.includes(record.category) ? record.category : 'Other',
+      websiteUrl: record.website_url,
+      productUrl: record.product_url,
+      catalogVersions: splitMultiValue(record.catalog_versions),
+      ocpiVersions: formatMultiValue(record.ocpi_versions),
+      rolesSupported: splitMultiValue(record.roles_supported),
+      geographicCoverage: record.geographic_coverage || 'Unknown',
+      targetCustomers: splitMultiValue(record.target_customers),
+      notes: record.notes || 'Unknown',
+      sponsorshipTier: record.sponsorship_tier || 'none',
+      sourceUrls: splitMultiValue(record.source_urls),
+      lastVerifiedDate: record.last_verified_date || 'Unknown',
+      active: toYesNo(record.active),
+    })
+  }
+
+  return services
+}
+
+function serviceMatchesVersion(service, version) {
+  if (!service.catalogVersions.length) {
+    return true
+  }
+  if (service.catalogVersions.some((entry) => entry.toLowerCase() === 'all')) {
+    return true
+  }
+  return service.catalogVersions.includes(version)
+}
+
+function compareServices(a, b) {
+  const categoryDelta = SERVICE_CATEGORY_ORDER.indexOf(a.category) - SERVICE_CATEGORY_ORDER.indexOf(b.category)
+  if (categoryDelta !== 0) {
+    return categoryDelta
+  }
+
+  const companyDelta = a.companyName.localeCompare(b.companyName)
+  if (companyDelta !== 0) {
+    return companyDelta
+  }
+
+  return a.serviceName.localeCompare(b.serviceName)
+}
+
+function formatServiceRoles(roles) {
+  if (!roles.length) {
+    return 'Unknown'
+  }
+  return roles.join(', ')
+}
+
+function asSentence(value) {
+  const normalized = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!normalized) {
+    return 'Unknown.'
+  }
+  return /[.!?]$/.test(normalized) ? normalized : `${normalized}.`
+}
+
+function sanitizeAsciidocCell(value) {
+  return String(value || '')
+    .replace(/\|/g, '\\|')
+    .replace(/\r?\n/g, ' ')
+    .trim()
+}
+
+function serviceTitle(service) {
+  if (service.productUrl) {
+    return `${service.productUrl}[${service.serviceName}]`
+  }
+  if (service.websiteUrl) {
+    return `${service.websiteUrl}[${service.serviceName}]`
+  }
+  return service.serviceName
+}
+
+function serviceNotes(service) {
+  const customers = service.targetCustomers.length ? service.targetCustomers.join(', ') : 'Unknown'
+  const tierLabel = service.sponsorshipTier === 'featured' ? '*Sponsor:* Featured' : ''
+  const sourceNumberEmoji = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']
+  const sourcesLabel = service.sourceUrls.length
+    ? `*Sources:* ${service.sourceUrls.map((url, index) => `${url}[🔗${sourceNumberEmoji[index] || String(index + 1)}]`).join(', ')}`
+    : '*Sources:* Unknown'
+  const verifiedLabel = service.lastVerifiedDate !== 'Unknown'
+    ? `*Last verified:* ${service.lastVerifiedDate}`
+    : '*Last verified:* Unknown'
+
+  return [
+    `*Summary:* ${asSentence(service.notes)}`,
+    `*Target customers:* ${customers}`,
+    verifiedLabel,
+    sourcesLabel,
+    tierLabel,
+  ]
+    .filter(Boolean)
+}
+
+function serviceNotesCell(service) {
+  return serviceNotes(service)
+    .map((line) => `* ${sanitizeAsciidocCell(line)}`)
+    .join('\n')
+}
+
+function servicesPageContent(version) {
+  const services = readServicesCatalog()
+    .filter((service) => service.active)
+    .filter((service) => serviceMatchesVersion(service, version))
+    .sort(compareServices)
+
+  const lines = [
+    '= Services',
+    '',
+    `Commercial services that support OCPI for version ${version}.`,
+    '',
+    '[NOTE]',
+    '====',
+    'This list is non-exhaustive and provided for discovery purposes only. It does not constitute endorsement.',
+    'To add or update a listing, contact mailto:ocpi@juherr.dev[ocpi@juherr.dev].',
+    'Sponsors may be highlighted in this section. See xref:sponsor.adoc[Sponsor].',
+    '====',
+    '',
+  ]
+
+  if (!services.length) {
+    lines.push(`No services are listed for OCPI ${version} yet.`)
+    return `${lines.join('\n')}\n`
+  }
+
+  for (const category of SERVICE_CATEGORY_ORDER) {
+    const categoryServices = services.filter((service) => service.category === category)
+    if (!categoryServices.length) {
+      continue
+    }
+
+    lines.push(`== ${category}`)
+    lines.push('')
+    lines.push('[cols="1,1,1,1,3", options="header"]')
+    lines.push('|===')
+    lines.push('| Service | OCPI Roles | Claimed OCPI Versions | Coverage | Notes')
+
+    for (const service of categoryServices) {
+      lines.push(`| ${sanitizeAsciidocCell(serviceTitle(service))}`)
+      lines.push(`| ${sanitizeAsciidocCell(formatServiceRoles(service.rolesSupported))}`)
+      lines.push(`| ${sanitizeAsciidocCell(service.ocpiVersions)}`)
+      lines.push(`| ${sanitizeAsciidocCell(service.geographicCoverage)}`)
+      lines.push(`a| ${serviceNotesCell(service)}`)
+    }
+
+    lines.push('|===')
+    lines.push('')
+  }
+
+  return `${lines.join('\n')}\n`
+}
+
+function writeServicesPage(pagesDir, version) {
+  writeFile(path.join(pagesDir, 'services.adoc'), servicesPageContent(version))
+}
+
 function writeFile(filePath, content) {
   ensureDir(path.dirname(filePath))
   fs.writeFileSync(filePath, content, 'utf8')
@@ -762,6 +1060,7 @@ function generateComponentPages(componentDir, version, asciidocFiles) {
 
   writeVersionHomePage(pagesDir, version)
   writeLibraryPage(pagesDir, version)
+  writeServicesPage(pagesDir, version)
   writeApiDiffPage(pagesDir, version)
   writeCommunityPage(pagesDir)
   writeSponsorPage(pagesDir)
@@ -790,6 +1089,7 @@ include::partial$src/${partialName}[]
   }
 
   navLines.push('* xref:library.adoc[Library]')
+  navLines.push('* xref:services.adoc[Services]')
   navLines.push('* xref:api-diff.adoc[API Diff]')
   navLines.push('* xref:community.adoc[Community]')
   navLines.push('* xref:sponsor.adoc[Sponsor]')
@@ -806,12 +1106,13 @@ function generateFallbackComponent(componentDir, version) {
 
   writeFallbackHomePage(pagesDir, version)
   writeLibraryPage(pagesDir, version)
+  writeServicesPage(pagesDir, version)
   writeApiDiffPage(pagesDir, version)
   writeCommunityPage(pagesDir)
   writeSponsorPage(pagesDir)
   writeAboutPage(pagesDir)
 
-  writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n* xref:library.adoc[Library]\n* xref:api-diff.adoc[API Diff]\n* xref:community.adoc[Community]\n* xref:sponsor.adoc[Sponsor]\n* xref:about.adoc[About]\n')
+  writeFile(path.join(moduleRoot, 'nav.adoc'), '* xref:index.adoc[Home]\n* xref:library.adoc[Library]\n* xref:services.adoc[Services]\n* xref:api-diff.adoc[API Diff]\n* xref:community.adoc[Community]\n* xref:sponsor.adoc[Sponsor]\n* xref:about.adoc[About]\n')
 }
 
 function syncVersion(versionInfo) {

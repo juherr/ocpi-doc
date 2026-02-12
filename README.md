@@ -55,7 +55,7 @@ Each version folder is treated as a versioned Antora content source.
 ## Antora (multi-version)
 
 The Antora playbook references all version folders and renders one site with version navigation.
-Each version includes `Home`, `Spec`, `Library`, `API Diff`, `Community`, `Sponsor`, and `About` pages.
+Each version includes `Home`, `Spec`, `Library`, `Services`, `API Diff`, `Community`, `Sponsor`, and `About` pages.
 
 ### Version status
 
@@ -99,6 +99,14 @@ npm run build:search
 - Planned/Partial support is shown as a warning in the `Notes` column.
 - Last push dates are not displayed on public pages.
 - Update workflow reference: `ai/PLAN-library-catalog-workflow.md`.
+
+### Services section maintenance
+
+- Services pages are generated per OCPI version from `data/services.csv`.
+- The catalog is non-exhaustive and informational (not an endorsement).
+- Maintain source URLs and `last_verified_date` for each row.
+- Use `catalog_versions=all` to publish a service on all version pages, or a version list like `2.3.0|2.2.1`.
+- Update workflow reference: `ai/PLAN-services-catalog-workflow.md`.
 
 ## OpenAPI and API Reference
 

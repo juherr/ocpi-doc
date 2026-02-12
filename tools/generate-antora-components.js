@@ -635,7 +635,7 @@ function readServicesCatalog() {
   return services
 }
 
-function serviceMatchesVersion(service, version) {
+function serviceMatchesCatalogVersion(service, version) {
   if (!service.catalogVersions.length) {
     return true
   }
@@ -645,10 +645,55 @@ function serviceMatchesVersion(service, version) {
   return service.catalogVersions.includes(version)
 }
 
+function serviceMatchesOcpiVersion(service, version) {
+  if (!service.ocpiVersions || service.ocpiVersions === 'Unknown') {
+    return true
+  }
+
+  const declaredVersions = service.ocpiVersions
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+
+  return declaredVersions.includes(version)
+}
+
+function hasKnownOcpiVersion(service) {
+  return service.ocpiVersions !== 'Unknown'
+}
+
+function isPremiumService(service) {
+  return service.sponsorshipTier === 'featured' || service.sponsorshipTier === 'standard'
+}
+
+function toAnchorId(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function categoryAnchor(category) {
+  return `category-${toAnchorId(category)}`
+}
+
+function serviceDetailAnchor(service) {
+  return `service-${toAnchorId(`${service.companyName}-${service.serviceName}`)}`
+}
+
+function filterAnchor(type, value) {
+  return `filter-${type}-${toAnchorId(value)}`
+}
+
 function compareServices(a, b) {
   const categoryDelta = SERVICE_CATEGORY_ORDER.indexOf(a.category) - SERVICE_CATEGORY_ORDER.indexOf(b.category)
   if (categoryDelta !== 0) {
     return categoryDelta
+  }
+
+  const knownVersionDelta = Number(hasKnownOcpiVersion(b)) - Number(hasKnownOcpiVersion(a))
+  if (knownVersionDelta !== 0) {
+    return knownVersionDelta
   }
 
   const companyDelta = a.companyName.localeCompare(b.companyName)
@@ -664,6 +709,17 @@ function formatServiceRoles(roles) {
     return 'Unknown'
   }
   return roles.join(', ')
+}
+
+function badge(value, tone = 'neutral') {
+  return `pass:[<span class="jh-service-badge jh-service-badge--${tone}">${sanitizeAsciidocCell(value)}</span>]`
+}
+
+function badges(values, tone = 'neutral') {
+  if (!values || !values.length) {
+    return badge('Unknown', 'muted')
+  }
+  return values.map((value) => badge(value, tone)).join(' ')
 }
 
 function asSentence(value) {
@@ -693,13 +749,139 @@ function serviceTitle(service) {
   return service.serviceName
 }
 
+function serviceSummary(service) {
+  return asSentence(service.notes)
+}
+
+function formatSourceLinks(urls) {
+  if (!urls.length) {
+    return 'Unknown'
+  }
+
+  const sourceNumberEmoji = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']
+  return urls
+    .map((url, index) => `${url}[🔗${sourceNumberEmoji[index] || String(index + 1)}]`)
+    .join(', ')
+}
+
+function badgeForVersion(version) {
+  if (version === 'Unknown') {
+    return badge('Unknown', 'muted')
+  }
+  return badge(version, 'version')
+}
+
+function versionBadges(ocpiVersions) {
+  if (!ocpiVersions || ocpiVersions === 'Unknown') {
+    return badgeForVersion('Unknown')
+  }
+  return ocpiVersions
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((version) => badgeForVersion(version))
+    .join(' ')
+}
+
+function roleBadges(roles) {
+  return badges(roles, 'role')
+}
+
+function coverageBadges(coverage) {
+  if (!coverage || coverage === 'Unknown') {
+    return badge('Unknown', 'muted')
+  }
+  return coverage
+    .split(' and ')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => badge(part, 'coverage'))
+    .join(' ')
+}
+
+function sortedUnique(values) {
+  return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b))
+}
+
+function servicesByValue(services, getter) {
+  const map = new Map()
+  for (const service of services) {
+    const values = getter(service)
+    for (const value of values) {
+      const key = value || 'Unknown'
+      if (!map.has(key)) {
+        map.set(key, [])
+      }
+      map.get(key).push(service)
+    }
+  }
+  return map
+}
+
+function writeFilterChipList(lines, type, values, counts, tone) {
+  const chips = values.map((value) => {
+    const count = (counts.get(value) || []).length
+    const label = `${value} (${count})`
+    return `pass:[<a class="jh-service-badge jh-service-badge--${tone}" href="#${filterAnchor(type, value)}">${sanitizeAsciidocCell(label)}</a>]`
+  })
+  lines.push(chips.join(' '))
+}
+
+function pushServiceCard(lines, service) {
+  const productUrl = service.productUrl || service.websiteUrl
+  const productAction = productUrl
+    ? `<a href="${sanitizeAsciidocCell(productUrl)}">Product page</a>`
+    : '<span>Product page: Unknown</span>'
+  const verifiedLabel = sanitizeAsciidocCell(service.lastVerifiedDate || 'Unknown')
+
+  lines.push('[.jh-service-card]')
+  lines.push('****')
+  lines.push('[.jh-service-card__title]')
+  lines.push(`<<${serviceDetailAnchor(service)},${sanitizeAsciidocCell(service.serviceName)}>>`)
+  lines.push('')
+  lines.push('[.jh-service-card__subtitle]')
+  lines.push(`Company: ${sanitizeAsciidocCell(service.companyName)} - Category: <<${categoryAnchor(service.category)},${sanitizeAsciidocCell(service.category)}>>`)
+  lines.push('')
+  lines.push('[.jh-service-card__summary]')
+  lines.push(sanitizeAsciidocCell(serviceSummary(service)))
+  lines.push('')
+  lines.push('[.jh-service-card__meta-table]')
+  lines.push('[cols="1,1",frame=none,grid=none]')
+  lines.push('|===')
+  lines.push(`a| *Roles:* ${roleBadges(service.rolesSupported)}`)
+  lines.push(`a| *OCPI Versions:* ${versionBadges(service.ocpiVersions)}`)
+  lines.push(`2+a| *Coverage:* ${coverageBadges(service.geographicCoverage)}`)
+  lines.push('|===')
+  lines.push('')
+  lines.push('[.jh-service-card__actions]')
+  lines.push(`pass:[<div class="jh-service-card__actions-row">${productAction}<a class="jh-service-card__audit-link" href="#${serviceDetailAnchor(service)}">Last verified: ${verifiedLabel}</a></div>]`)
+  lines.push('****')
+  lines.push('')
+}
+
+function pushServiceCardsByCategory(lines, services) {
+  for (const category of SERVICE_CATEGORY_ORDER) {
+    const categoryServices = services.filter((service) => service.category === category)
+    if (!categoryServices.length) {
+      continue
+    }
+
+    lines.push(`[#${categoryAnchor(category)}]`)
+    lines.push(`== ${category}`)
+    lines.push('')
+    lines.push(`${badge(`${categoryServices.length} services`, 'count')}`)
+    lines.push('')
+
+    for (const service of categoryServices) {
+      pushServiceCard(lines, service)
+    }
+  }
+}
+
 function serviceNotes(service) {
   const customers = service.targetCustomers.length ? service.targetCustomers.join(', ') : 'Unknown'
   const tierLabel = service.sponsorshipTier === 'featured' ? '*Sponsor:* Featured' : ''
-  const sourceNumberEmoji = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']
-  const sourcesLabel = service.sourceUrls.length
-    ? `*Sources:* ${service.sourceUrls.map((url, index) => `${url}[🔗${sourceNumberEmoji[index] || String(index + 1)}]`).join(', ')}`
-    : '*Sources:* Unknown'
+  const sourcesLabel = `*Sources:* ${formatSourceLinks(service.sourceUrls)}`
   const verifiedLabel = service.lastVerifiedDate !== 'Unknown'
     ? `*Last verified:* ${service.lastVerifiedDate}`
     : '*Last verified:* Unknown'
@@ -723,11 +905,22 @@ function serviceNotesCell(service) {
 function servicesPageContent(version) {
   const services = readServicesCatalog()
     .filter((service) => service.active)
-    .filter((service) => serviceMatchesVersion(service, version))
+    .filter((service) => serviceMatchesCatalogVersion(service, version))
+    .filter((service) => serviceMatchesOcpiVersion(service, version))
     .sort(compareServices)
+  const premiumServices = services.filter(isPremiumService)
+
+  const byRegion = servicesByValue(services, (service) => [service.geographicCoverage || 'Unknown'])
+  const byRole = servicesByValue(services, (service) => service.rolesSupported.length ? service.rolesSupported : ['Unknown'])
+  const byVersion = servicesByValue(services, (service) => service.ocpiVersions === 'Unknown'
+    ? ['Unknown']
+    : service.ocpiVersions.split(',').map((part) => part.trim()).filter(Boolean))
+  const byCategory = servicesByValue(services, (service) => [service.category])
 
   const lines = [
     '= Services',
+    '',
+    ':toclevels: 1',
     '',
     `Commercial services that support OCPI for version ${version}.`,
     '',
@@ -735,7 +928,6 @@ function servicesPageContent(version) {
     '====',
     'This list is non-exhaustive and provided for discovery purposes only. It does not constitute endorsement.',
     'To add or update a listing, contact mailto:ocpi@juherr.dev[ocpi@juherr.dev].',
-    'Sponsors may be highlighted in this section. See xref:sponsor.adoc[Sponsor].',
     '====',
     '',
   ]
@@ -745,27 +937,111 @@ function servicesPageContent(version) {
     return `${lines.join('\n')}\n`
   }
 
+  lines.push('== Premium Placement')
+  lines.push('')
+  lines.push('[TIP]')
+  lines.push('====')
+  lines.push('Your product in this section? Become a sponsor to support maintenance and get premium placement: xref:sponsor.adoc[Sponsor].')
+  lines.push('====')
+  lines.push('')
+
+  if (!premiumServices.length) {
+    lines.push('No premium listing yet. Your product could appear here.')
+    lines.push('')
+  } else {
+    for (const service of premiumServices) {
+      pushServiceCard(lines, service)
+    }
+  }
+
+  lines.push('== Quick Navigation')
+  lines.push('')
   for (const category of SERVICE_CATEGORY_ORDER) {
-    const categoryServices = services.filter((service) => service.category === category)
-    if (!categoryServices.length) {
+    const count = services.filter((service) => service.category === category).length
+    if (!count) {
       continue
     }
+    lines.push(`* <<${categoryAnchor(category)},${category} (${count})>>`)
+  }
+  lines.push('')
 
-    lines.push(`== ${category}`)
+  lines.push('== Filters')
+  lines.push('')
+  lines.push('*Use these visual filters to scan the catalog faster:*')
+  lines.push('')
+  lines.push('*Region*')
+  lines.push('')
+  writeFilterChipList(lines, 'region', sortedUnique([...byRegion.keys()]), byRegion, 'coverage')
+  lines.push('')
+  lines.push('*Role*')
+  lines.push('')
+  writeFilterChipList(lines, 'role', sortedUnique([...byRole.keys()]), byRole, 'role')
+  lines.push('')
+  lines.push('*OCPI Version*')
+  lines.push('')
+  writeFilterChipList(lines, 'version', sortedUnique([...byVersion.keys()]), byVersion, 'version')
+  lines.push('')
+  lines.push('*Category*')
+  lines.push('')
+  writeFilterChipList(lines, 'category', sortedUnique([...byCategory.keys()]), byCategory, 'count')
+  lines.push('')
+
+  pushServiceCardsByCategory(lines, services)
+
+  lines.push('== Filtered Views')
+  lines.push('')
+
+  for (const [region, regionServices] of [...byRegion.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    lines.push(`[#${filterAnchor('region', region)}]`)
+    lines.push(`*Region: ${sanitizeAsciidocCell(region)}*`)
     lines.push('')
-    lines.push('[cols="1,1,1,1,3", options="header"]')
-    lines.push('|===')
-    lines.push('| Service | OCPI Roles | Claimed OCPI Versions | Coverage | Notes')
+    lines.push(`Showing ${regionServices.length} services.`)
+    lines.push('')
+    lines.push(regionServices.map((service) => `* <<${serviceDetailAnchor(service)},${sanitizeAsciidocCell(service.serviceName)}>>`).join('\n'))
+    lines.push('')
+  }
 
-    for (const service of categoryServices) {
-      lines.push(`| ${sanitizeAsciidocCell(serviceTitle(service))}`)
-      lines.push(`| ${sanitizeAsciidocCell(formatServiceRoles(service.rolesSupported))}`)
-      lines.push(`| ${sanitizeAsciidocCell(service.ocpiVersions)}`)
-      lines.push(`| ${sanitizeAsciidocCell(service.geographicCoverage)}`)
-      lines.push(`a| ${serviceNotesCell(service)}`)
-    }
+  for (const [role, roleServices] of [...byRole.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    lines.push(`[#${filterAnchor('role', role)}]`)
+    lines.push(`*Role: ${sanitizeAsciidocCell(role)}*`)
+    lines.push('')
+    lines.push(`Showing ${roleServices.length} services.`)
+    lines.push('')
+    lines.push(roleServices.map((service) => `* <<${serviceDetailAnchor(service)},${sanitizeAsciidocCell(service.serviceName)}>>`).join('\n'))
+    lines.push('')
+  }
 
-    lines.push('|===')
+  for (const [ocpiVersion, versionServices] of [...byVersion.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    lines.push(`[#${filterAnchor('version', ocpiVersion)}]`)
+    lines.push(`*OCPI Version: ${sanitizeAsciidocCell(ocpiVersion)}*`)
+    lines.push('')
+    lines.push(`Showing ${versionServices.length} services.`)
+    lines.push('')
+    lines.push(versionServices.map((service) => `* <<${serviceDetailAnchor(service)},${sanitizeAsciidocCell(service.serviceName)}>>`).join('\n'))
+    lines.push('')
+  }
+
+  for (const [category, categoryServices] of [...byCategory.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    lines.push(`[#${filterAnchor('category', category)}]`)
+    lines.push(`*Category: ${sanitizeAsciidocCell(category)}*`)
+    lines.push('')
+    lines.push(`Showing ${categoryServices.length} services.`)
+    lines.push('')
+    lines.push(categoryServices.map((service) => `* <<${serviceDetailAnchor(service)},${sanitizeAsciidocCell(service.serviceName)}>>`).join('\n'))
+    lines.push('')
+  }
+
+  lines.push('== Data Audit')
+  lines.push('')
+  lines.push('Extended metadata for verification and maintenance workflows.')
+  lines.push('')
+
+  for (const service of services) {
+    lines.push(`[#${serviceDetailAnchor(service)}]`)
+    lines.push(`*${sanitizeAsciidocCell(service.serviceName)}*`)
+    lines.push('')
+    lines.push(`* Last verified: ${sanitizeAsciidocCell(service.lastVerifiedDate || 'Unknown')}`)
+    lines.push(`* Sources: ${sanitizeAsciidocCell(formatSourceLinks(service.sourceUrls))}`)
     lines.push('')
   }
 

@@ -331,6 +331,187 @@
   outline-offset: 2px;
 }
 
+.doc .jh-service-card {
+  margin: 0.9rem 0 1.1rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid #d0d7de;
+  border-radius: 0.7rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  transition: border-color 130ms ease, box-shadow 130ms ease, transform 130ms ease;
+}
+
+.doc .jh-service-card:hover {
+  border-color: #b6c0cb;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.doc .jh-service-card p {
+  margin: 0.18rem 0;
+}
+
+.doc .jh-service-card__title {
+  margin: 0;
+  font-size: 1.04rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.doc .jh-service-card__title a {
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.doc .jh-service-card__title a:hover {
+  text-decoration: underline;
+}
+
+.doc .jh-service-card__subtitle {
+  margin-top: 0.18rem;
+  color: #64748b;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.doc .jh-service-card__summary {
+  margin-top: 0.38rem;
+  margin-bottom: 0.14rem;
+  color: #1e293b;
+  max-width: 70ch;
+}
+
+.doc .jh-service-card__meta-table {
+  margin: 0 !important;
+}
+
+.doc .jh-service-card .jh-service-card__meta-table.tableblock {
+  margin: 0 !important;
+}
+
+.doc .jh-service-card .jh-service-card__meta-table.tableblock > .content {
+  margin: 0;
+}
+
+.doc .jh-service-card__meta-table table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.doc .jh-service-card__meta-table td {
+  padding: 0.12rem 0 !important;
+  vertical-align: top;
+  line-height: 1.8;
+}
+
+.doc .jh-service-card__meta-table tr:last-child td {
+  padding-bottom: 0.03rem !important;
+}
+
+.doc .jh-service-card__meta-table td > p {
+  margin: 0 !important;
+  line-height: 1.2;
+}
+
+.doc .jh-service-card__meta-table td p,
+.doc .jh-service-card__meta-table td .paragraph,
+.doc .jh-service-card__meta-table td .paragraph p {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.8;
+}
+
+.doc .jh-service-card__actions {
+  margin-top: 0.03rem;
+  padding-top: 0.09rem;
+  border-top: 1px dashed #dbe3ec;
+  font-size: 0.86rem;
+}
+
+.doc .jh-service-card__actions p,
+.doc .jh-service-card__actions .paragraph,
+.doc .jh-service-card__actions .paragraph p {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.2;
+}
+
+.doc .jh-service-card__actions a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.12em;
+}
+
+.doc .jh-service-card__actions-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.doc .jh-service-card__actions-row .jh-service-card__audit-link {
+  margin-left: auto;
+  color: #475569;
+}
+
+.doc .jh-service-card__actions a:focus-visible,
+.doc .jh-service-card__title a:focus-visible {
+  outline: 2px solid #0969da;
+  outline-offset: 2px;
+}
+
+.doc .jh-service-badge {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0.16rem 0 0;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #d0d7de;
+  border-radius: 999px;
+  background: #f6f8fa;
+  color: #1f2937;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.1;
+  text-decoration: none;
+}
+
+.doc .jh-service-badge:hover {
+  background: #eef2f7;
+  text-decoration: none;
+}
+
+.doc .jh-service-badge--role {
+  background: #eef9ff;
+  border-color: #b6dfff;
+  color: #075985;
+}
+
+.doc .jh-service-badge--version {
+  background: #edfdf4;
+  border-color: #bce8cb;
+  color: #166534;
+}
+
+.doc .jh-service-badge--coverage {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+.doc .jh-service-badge--muted {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #6b7280;
+}
+
+.doc .jh-service-badge--count,
+.doc .jh-service-badge--company,
+.doc .jh-service-badge--letter {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #3730a3;
+}
+
 @media (max-width: 700px) {
   .header .navbar .navbar-brand {
     flex-wrap: wrap;
@@ -380,5 +561,26 @@
   .jh-footer .jh-item {
     display: block;
     margin: 0.15rem 0;
+  }
+
+  .doc .jh-service-card {
+    padding: 0.78rem 0.8rem;
+  }
+
+  .doc .jh-service-card__title {
+    font-size: 0.98rem;
+  }
+
+  .doc .jh-service-badge {
+    font-size: 0.71rem;
+    padding: 0.18rem 0.44rem;
+  }
+
+  .doc .jh-service-card__actions-row {
+    flex-wrap: wrap;
+  }
+
+  .doc .jh-service-card__actions-row .jh-service-card__audit-link {
+    margin-left: 0;
   }
 }

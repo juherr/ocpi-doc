@@ -46,9 +46,9 @@ Maintenance reminder:
 - When customizing the Antora navbar, keep the full default `<header class="header">...` structure in `antora/supplemental-ui/partials/header-content.hbs`.
 - For a working hover dropdown in the default UI, keep the dropdown trigger `href="#"` and place real links inside `.navbar-dropdown`.
 - Keep search UI text in English (for example, placeholder `Search the docs`).
-- OpenAPI release assets are managed by `.github/workflows/openapi-release-assets.yml`.
+- OpenAPI release assets are managed by `.github/workflows/openapi-release-draft.yml`.
 - Release workflows attach bundled OpenAPI YAML files and one `openapi-all.zip` source archive to the GitHub release.
-- OpenAPI release assets are attached when a release draft is created to support immutable publication.
+- OpenAPI release assets are created and attached from a manual workflow that also creates the release tag and draft.
 
 ## Source Import and Sync Strategy
 

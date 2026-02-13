@@ -1,0 +1,135 @@
+name: OpenAPI Draft Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag to create for this release (example: v0.1.0)"
+        required: true
+      release_title:
+        description: Optional release title (defaults to "Release version x.y")
+        required: false
+        default: ''
+      prerelease:
+        description: Mark release as pre-release
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  create-draft-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate and create tag
+        env:
+          TAG_NAME: ${{ inputs.tag_name }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${TAG_NAME}" ]; then
+            echo "ERROR: tag_name input is required"
+            exit 1
+          fi
+
+          git fetch --tags origin
+
+          if git rev-parse -q --verify "refs/tags/${TAG_NAME}" >/dev/null; then
+            echo "ERROR: local tag ${TAG_NAME} already exists"
+            exit 1
+          fi
+
+          if git ls-remote --tags --refs origin "refs/tags/${TAG_NAME}" | grep -q .; then
+            echo "ERROR: remote tag ${TAG_NAME} already exists"
+            exit 1
+          fi
+
+          git tag "${TAG_NAME}" "${GITHUB_SHA}"
+          git push origin "refs/tags/${TAG_NAME}"
+
+      - name: Prepare release assets directory
+        run: mkdir -p dist/release-assets
+
+      - name: Check OpenAPI version directories
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          dirs=(openapi/ocpi-*)
+          if [ ${#dirs[@]} -eq 0 ]; then
+            echo "ERROR: no OpenAPI version directories found under openapi/ocpi-*"
+            exit 1
+          fi
+          echo "Found ${#dirs[@]} OpenAPI version directories"
+
+      - name: Generate bundled OpenAPI assets
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for dir in openapi/ocpi-*; do
+            version="${dir#openapi/ocpi-}"
+            node tools/generate-root-openapi.js "${version}"
+            npx --yes @redocly/cli bundle "openapi/ocpi-${version}/openapi.yaml" --output "dist/release-assets/openapi-${version}.yaml"
+          done
+
+      - name: Package all OpenAPI sources
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          zip -qr "dist/release-assets/openapi-all.zip" openapi/ocpi-*
+
+      - name: Upload release assets artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-release-assets
+          path: dist/release-assets
+
+      - name: Create draft release and upload assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ inputs.tag_name }}
+          RELEASE_TITLE: ${{ inputs.release_title }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "${TAG_NAME}" >/dev/null 2>&1; then
+            echo "ERROR: release for ${TAG_NAME} already exists"
+            exit 1
+          fi
+
+          title="${RELEASE_TITLE}"
+          if [ -z "${title}" ]; then
+            pretty_version="${TAG_NAME#v}"
+            title="Release version ${pretty_version}"
+          fi
+
+          prerelease_flag=""
+          if [ "${PRERELEASE}" = "true" ]; then
+            prerelease_flag="--prerelease"
+          fi
+
+          gh release create "${TAG_NAME}" \
+            dist/release-assets/openapi-*.yaml \
+            dist/release-assets/openapi-all.zip \
+            --draft \
+            --title "${title}" \
+            --notes "" \
+            --verify-tag \
+            ${prerelease_flag}

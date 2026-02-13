@@ -48,16 +48,13 @@ jobs:
             npx --yes @redocly/cli bundle "openapi/ocpi-${version}/openapi.yaml" --output "dist/release-assets/openapi-${version}.yaml"
           done
 
-      - name: Build Swagger pages
-        run: npm run build:swagger
-
-      - name: Package Swagger release assets
+      - name: Package OpenAPI source assets
         run: |
           set -euo pipefail
           shopt -s nullglob
-          for dir in public/api/*/swagger; do
-            version="$(basename "$(dirname "${dir}")")"
-            (cd "public/api/${version}" && zip -qr "../../../dist/release-assets/swagger-${version}.zip" swagger)
+          for dir in openapi/ocpi-*; do
+            version="${dir#openapi/ocpi-}"
+            (cd openapi && zip -qr "../dist/release-assets/openapi-${version}.zip" "ocpi-${version}")
           done
 
       - name: Upload release assets artifact
@@ -85,4 +82,4 @@ jobs:
         with:
           files: |
             dist/release-assets/openapi-*.yaml
-            dist/release-assets/swagger-*.zip
+            dist/release-assets/openapi-*.zip

@@ -47,7 +47,7 @@ Maintenance reminder:
 - For a working hover dropdown in the default UI, keep the dropdown trigger `href="#"` and place real links inside `.navbar-dropdown`.
 - Keep search UI text in English (for example, placeholder `Search the docs`).
 - OpenAPI release assets are managed by `.github/workflows/openapi-release-assets.yml`.
-- Release workflows attach bundled OpenAPI YAML and generated Swagger ZIP assets to the GitHub release.
+- Release workflows attach bundled OpenAPI YAML and OpenAPI source ZIP assets to the GitHub release.
 
 ## Source Import and Sync Strategy
 

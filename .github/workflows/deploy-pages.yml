@@ -4,6 +4,21 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'antora/**'
+      - 'antora-playbook.yml'
+      - 'specifications/**'
+      - 'openapi/**'
+      - 'data/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/deploy-pages.yml'
+      - 'tools/generate-antora-components.js'
+      - 'tools/build-redoc.js'
+      - 'tools/build-openapi-diff.js'
+      - 'tools/build-swagger-ui.js'
+      - 'tools/prepare-pagefind.js'
+      - 'tools/generate-root-openapi.js'
   workflow_dispatch:
 
 permissions:

@@ -135,7 +135,7 @@ npm run build:swagger
 - `.github/workflows/openapi-release-assets.yml` publishes OpenAPI release assets from this repository.
 - Release assets are attached when a GitHub release draft is created (immutable release workflow).
 - Release assets include one bundled OpenAPI file per version (`openapi-<version>.yaml`).
-- Release assets include one OpenAPI source archive per version (`openapi-<version>.zip`) with root folder `ocpi-<version>/`.
+- Release assets include one OpenAPI source archive for all versions (`openapi-all.zip`) containing `openapi/ocpi-<version>/` directories.
 
 ## Deployment
 

@@ -54,10 +54,7 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s nullglob
-          for dir in openapi/ocpi-*; do
-            version="${dir#openapi/ocpi-}"
-            (cd openapi && zip -qr "../dist/release-assets/openapi-${version}.zip" "ocpi-${version}")
-          done
+          (cd . && zip -qr "dist/release-assets/openapi-all.zip" openapi/ocpi-*)
 
       - name: Upload release assets artifact
         uses: actions/upload-artifact@v4
@@ -84,4 +81,4 @@ jobs:
         with:
           files: |
             dist/release-assets/openapi-*.yaml
-            dist/release-assets/openapi-*.zip
+            dist/release-assets/openapi-all.zip

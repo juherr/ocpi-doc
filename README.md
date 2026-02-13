@@ -130,6 +130,12 @@ npm run build:swagger
 
 `npm run build:site` builds Antora + Redoc + Swagger UI and then generates the Pagefind index into `public/`.
 
+### OpenAPI release assets
+
+- `.github/workflows/openapi-release-assets.yml` publishes OpenAPI and Swagger release assets from this repository.
+- Release assets include one bundled OpenAPI file per version (`openapi-<version>.yaml`).
+- Release assets include one Swagger archive per version (`swagger-<version>.zip`).
+
 ## Deployment
 
 ### GitHub Pages

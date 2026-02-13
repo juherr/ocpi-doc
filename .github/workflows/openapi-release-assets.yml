@@ -1,0 +1,88 @@
+name: OpenAPI Release Assets
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+jobs:
+  build-assets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare release assets directory
+        run: mkdir -p dist/release-assets
+
+      - name: Check OpenAPI version directories
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          dirs=(openapi/ocpi-*)
+          if [ ${#dirs[@]} -eq 0 ]; then
+            echo "ERROR: no OpenAPI version directories found under openapi/ocpi-*"
+            exit 1
+          fi
+          echo "Found ${#dirs[@]} OpenAPI version directories"
+
+      - name: Generate bundled OpenAPI assets
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for dir in openapi/ocpi-*; do
+            version="${dir#openapi/ocpi-}"
+            echo "Generating root OpenAPI for ${version}"
+            node tools/generate-root-openapi.js "${version}"
+            npx --yes @redocly/cli bundle "openapi/ocpi-${version}/openapi.yaml" --output "dist/release-assets/openapi-${version}.yaml"
+          done
+
+      - name: Build Swagger pages
+        run: npm run build:swagger
+
+      - name: Package Swagger release assets
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for dir in public/api/*/swagger; do
+            version="$(basename "$(dirname "${dir}")")"
+            (cd "public/api/${version}" && zip -qr "../../../dist/release-assets/swagger-${version}.zip" swagger)
+          done
+
+      - name: Upload release assets artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-release-assets
+          path: dist/release-assets
+
+  publish-release-assets:
+    if: github.event_name == 'release'
+    needs: build-assets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release assets artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-release-assets
+          path: dist/release-assets
+
+      - name: Attach release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/release-assets/openapi-*.yaml
+            dist/release-assets/swagger-*.zip

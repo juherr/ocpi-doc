@@ -48,6 +48,7 @@ Maintenance reminder:
 - Keep search UI text in English (for example, placeholder `Search the docs`).
 - OpenAPI release assets are managed by `.github/workflows/openapi-release-assets.yml`.
 - Release workflows attach bundled OpenAPI YAML and OpenAPI source ZIP assets to the GitHub release.
+- OpenAPI release assets are attached when a release draft is created to support immutable publication.
 
 ## Source Import and Sync Strategy
 
